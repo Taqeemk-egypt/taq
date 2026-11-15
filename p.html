@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title id="page-title">صفحة البايو | تقييمك</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts & Font Awesome 6 Icons (All Free & Brands CDN) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- QR Code Styling & Fallback Libraries for Share Modal -->
+  <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <!-- App Custom Styles -->
+  <link rel="stylesheet" href="style.css">
+
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between pb-6 relative overflow-x-hidden transition-colors duration-300" style="background: var(--theme-bg, #090d16); color: var(--theme-text, #f1f5f9);">
+
+  <!-- Ambient Background Glow -->
+  <div id="ambient-glow" class="fixed top-0 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full blur-3xl opacity-20 pointer-events-none" style="background-color: #6366f1;"></div>
+
+  <!-- Share Button Top Left (Available for both Cover and Avatar layouts) -->
+  <div class="absolute top-4 left-4 z-30">
+    <button onclick="openShareModal()" id="btn-share-trigger" class="glass-panel text-xs px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg transition-transform hover:scale-105" style="background: var(--theme-card-bg, rgba(17, 24, 39, 0.7)); border: 1px solid var(--theme-card-border, rgba(255, 255, 255, 0.1)); color: var(--theme-text, #f8fafc);">
+      <i class="fa-solid fa-share-nodes text-cyan-400"></i> مشاركة / QR
+    </button>
+  </div>
+
+  <!-- Cover Banner -->
+  <div id="public-cover-banner" class="w-full h-[9rem] sm:h-[11rem] bg-cover bg-center relative" style="background-size: cover; background-position: center;">
+    <div class="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60"></div>
+  </div>
+
+  <!-- Main Bio Content Container -->
+  <main id="public-main-container" class="w-full max-w-md mx-auto px-4 space-y-6 z-10 -mt-12 sm:-mt-14">
+    
+    <!-- Profile Header Box -->
+    <div id="profile-header-box" class="text-center space-y-3">
+      <!-- Circular Avatar Overlap -->
+      <div class="relative inline-block">
+        <div class="w-[5.5rem] h-[5.5rem] sm:w-[6rem] sm:h-[6rem] mx-auto rounded-full ring-4 ring-black/30 p-0.5 shadow-2xl relative aspect-square shrink-0" id="avatar-container" style="background: linear-gradient(135deg, #6366f1, #06b6d4); aspect-ratio: 1/1; flex-shrink: 0;">
+          <img id="bio-avatar" src="https://api.dicebear.com/7.x/identicon/svg?seed=user" alt="Avatar" class="w-full h-full object-cover rounded-full bg-slate-900" style="width: 100%; height: 100%; object-fit: cover; border-radius: 9999px;">
+        </div>
+      </div>
+
+      <div>
+        <h1 id="bio-name" class="text-xl font-black flex items-center justify-center gap-1.5" style="color: var(--theme-text, #ffffff);">
+          جاري التحميل...
+        </h1>
+        <p id="bio-username" class="text-xs font-mono mt-0.5" style="color: var(--theme-text-muted, #94a3b8);">@loading</p>
+      </div>
+
+      <p id="bio-description" class="text-xs sm:text-sm leading-relaxed max-w-sm mx-auto px-2" style="color: var(--theme-text, #e2e8f0);">
+        <!-- Bio text -->
+      </p>
+
+      <!-- Social Media Handles Row -->
+      <div id="bio-socials" class="flex items-center justify-center gap-2.5 pt-1">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Structured Lists & Links Container -->
+    <div id="bio-content-container" class="space-y-4 pt-2">
+      <div class="text-center py-10">
+        <i class="fa-solid fa-spinner fa-spin text-2xl text-indigo-400"></i>
+      </div>
+    </div>
+
+  </main>
+
+  
+
+  <!-- ==============================================================================
+       SHARE & QR CODE MODAL
+       ============================================================================== -->
+  <div id="share-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-panel w-full max-w-sm rounded-3xl p-6 text-center relative border border-slate-700 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <button onclick="closeShareModal()" class="absolute top-4 left-4 text-slate-400 hover:text-white">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <h3 class="text-sm font-bold text-white mb-3">كود QR للصفحة</h3>
+      
+      <div id="share-qr-box" class="w-full max-w-[256px] h-auto aspect-square mx-auto bg-white rounded-2xl p-2 flex items-center justify-center shadow-lg my-2"></div>
+      
+      <p class="text-[11px] text-slate-400 mt-3">امسح الكود لفتح الصفحة مباشرة على هاتفك</p>
+
+      <div class="mt-4 flex flex-wrap gap-2">
+        <button onclick="copyShareLink()" class="btn-primary text-xs flex-1 py-2">
+          <i class="fa-regular fa-copy ml-1"></i> نسخ الرابط
+        </button>
+        <button onclick="downloadShareQR()" class="btn-secondary text-xs py-2 px-3" title="تنزيل PNG">
+          <i class="fa-solid fa-download ml-1 text-cyan-400"></i> PNG
+        </button>
+        <button onclick="downloadShareQRSVG()" class="btn-secondary text-xs py-2 px-3" title="تنزيل SVG">
+          <i class="fa-solid fa-vector-square ml-1 text-emerald-400"></i> SVG
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase JS v2 & App Configuration & Logic Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+  <script src="config.js"></script>
+  <script src="theme.js"></script>
+  <script src="app.js"></script>
+
+  <script>
+    let activeSystemData = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const slug = urlParams.get('u') || 'qahwet-ehlara';
+
+      await loadPublicSystem(slug);
+    });
+
+    async function loadPublicSystem(slug) {
+      try {
+        activeSystemData = await Taqeemk.API.getSystemBySlug(slug);
+
+        if (!activeSystemData) {
+          renderSystemNotFound(slug);
+          return;
+        }
+
+        // Fetch owner profile to check deactivation and verification
+        const ownerProfile = await Taqeemk.API.getProfileById(activeSystemData.user_id);
+
+        // Check if account is deactivated (grace period expired without payment OR subscription expired)
+        if (ownerProfile && Taqeemk.API.isAccountDeactivated(ownerProfile)) {
+          renderDeactivatedAccount();
+          return;
+        }
+
+        // Increment view count
+        Taqeemk.API.incrementSystemView(activeSystemData.id);
+
+        // 1. Resolve Theme and CSS Variables
+        const themeId = activeSystemData.theme || 'aurora';
+        const theme = window.getTaqeemkTheme ? window.getTaqeemkTheme(themeId) : (window.THEMES?.[themeId] || window.THEMES?.aurora);
+        const themeColor = activeSystemData.theme_color || theme.accent || '#6366f1';
+
+        if (window.applyTaqeemkTheme) {
+          window.applyTaqeemkTheme(document.documentElement, themeId, themeColor);
+        }
+
+        document.body.style.background = theme.background;
+        document.body.style.color = theme.textColor;
+
+        // 2. Titles & Bio with inline blue verification icon if verified
+        document.getElementById('page-title').textContent = `${activeSystemData.title} | تقييمك`;
+        
+        const isVerified = Boolean(ownerProfile?.is_verified);
+        const verifiedIconHtml = isVerified
+          ? `<i class="fa-solid fa-circle-check text-blue-500 text-sm mr-1.5 inline-block align-middle" title="حساب موثق"></i>`
+          : '';
+
+        document.getElementById('bio-name').innerHTML = `${Taqeemk.Security.escapeHTML(activeSystemData.title)} ${verifiedIconHtml}`;
+        document.getElementById('bio-name').style.color = theme.textColor;
+        document.getElementById('bio-username').textContent = `@${activeSystemData.slug}`;
+        document.getElementById('bio-username').style.color = theme.mutedText;
+
+        // Render bio description with automatic conversion of phone numbers to WhatsApp links
+        let bioText = Taqeemk.Security.escapeHTML(activeSystemData.bio || '');
+        const phoneRegex = /(?:(?:\+?20|0020)?0?1[0125]\d{8})/g;
+        bioText = bioText.replace(phoneRegex, (match) => {
+          const waUrl = Taqeemk.API.cleanPhoneToWhatsApp(match);
+          return `<a href="${waUrl}" target="_blank" class="text-emerald-400 font-bold underline hover:text-emerald-300 transition-colors">${match}</a>`;
+        });
+        document.getElementById('bio-description').innerHTML = bioText;
+        document.getElementById('bio-description').style.color = theme.textColor;
+        
+        // 3. Header Layout (Cover vs Avatar vs Portrait)
+        const headerLayout = activeSystemData.header_layout || 'cover';
+        const coverBanner = document.getElementById('public-cover-banner');
+        const mainContainer = document.getElementById('public-main-container');
+        const profileHeaderBox = document.getElementById('profile-header-box');
+
+        if (headerLayout === 'portrait') {
+          if (coverBanner) coverBanner.classList.add('hidden');
+          if (mainContainer) {
+            mainContainer.classList.remove('-mt-12', 'sm:-mt-14', '-mt-20', 'pt-12', 'sm:pt-16');
+            mainContainer.classList.add('pt-8', 'sm:pt-12');
+          }
+          if (profileHeaderBox) {
+            // Smooth portrait header without bottom border, corner cut or shadow
+            profileHeaderBox.className = "portrait-header-box text-center space-y-3 relative overflow-hidden rounded-t-3xl rounded-b-none p-6 sm:p-8 border-t border-x border-white/10 border-b-0";
+            profileHeaderBox.style.backgroundImage = 'none';
+            profileHeaderBox.style.backgroundColor = 'transparent';
+
+            const bgUrl = activeSystemData.cover_url || activeSystemData.avatar_url || 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=80';
+            
+            // 1. Portrait background image layer with bottom fade mask
+            let bgLayer = document.getElementById('portrait-header-bg');
+            if (!bgLayer) {
+              bgLayer = document.createElement('div');
+              bgLayer.id = 'portrait-header-bg';
+              bgLayer.className = 'portrait-bg-layer absolute inset-0 bg-cover bg-center pointer-events-none';
+              profileHeaderBox.prepend(bgLayer);
+            } else {
+              bgLayer.classList.remove('hidden');
+            }
+            bgLayer.style.backgroundImage = `url('${bgUrl}')`;
+
+            // 2. Scrim overlay with matching bottom fade mask
+            let scrim = document.getElementById('portrait-header-scrim');
+            if (!scrim) {
+              scrim = document.createElement('div');
+              scrim.id = 'portrait-header-scrim';
+              scrim.className = 'portrait-scrim-overlay absolute inset-0 pointer-events-none';
+              profileHeaderBox.insertBefore(scrim, bgLayer.nextSibling);
+            } else {
+              scrim.classList.remove('hidden');
+            }
+
+            Array.from(profileHeaderBox.children).forEach(child => {
+              if (child !== scrim && child !== bgLayer) child.classList.add('relative', 'z-10');
+            });
+          }
+        } else if (headerLayout === 'avatar') {
+          if (coverBanner) coverBanner.classList.add('hidden');
+          if (mainContainer) {
+            mainContainer.classList.remove('-mt-12', 'sm:-mt-14', '-mt-20', 'pt-8', 'sm:pt-12');
+            mainContainer.classList.add('pt-12', 'sm:pt-16');
+          }
+          if (profileHeaderBox) {
+            profileHeaderBox.className = "text-center space-y-3";
+            profileHeaderBox.style.backgroundImage = 'none';
+            profileHeaderBox.style.backgroundColor = '';
+            const bgLayer = document.getElementById('portrait-header-bg');
+            if (bgLayer) bgLayer.classList.add('hidden');
+            const scrim = document.getElementById('portrait-header-scrim');
+            if (scrim) scrim.classList.add('hidden');
+          }
+        } else {
+          // cover
+          if (coverBanner) {
+            coverBanner.classList.remove('hidden');
+            if (activeSystemData.cover_url) {
+              coverBanner.style.backgroundImage = `url('${activeSystemData.cover_url}')`;
+            }
+          }
+          if (mainContainer) {
+            mainContainer.classList.add('-mt-12', 'sm:-mt-14');
+            mainContainer.classList.remove('pt-8', 'sm:pt-12', 'pt-12', 'sm:pt-16');
+          }
+          if (profileHeaderBox) {
+            profileHeaderBox.className = "text-center space-y-3";
+            profileHeaderBox.style.backgroundImage = 'none';
+            profileHeaderBox.style.backgroundColor = '';
+            const bgLayer = document.getElementById('portrait-header-bg');
+            if (bgLayer) bgLayer.classList.add('hidden');
+            const scrim = document.getElementById('portrait-header-scrim');
+            if (scrim) scrim.classList.add('hidden');
+          }
+        }
+
+        if (activeSystemData.avatar_url) {
+          document.getElementById('bio-avatar').src = activeSystemData.avatar_url;
+        }
+
+        document.getElementById('ambient-glow').style.backgroundColor = themeColor;
+        document.getElementById('avatar-container').style.background = `linear-gradient(135deg, ${themeColor}, #06b6d4)`;
+
+        // 4. Social Icons
+        renderSocials(activeSystemData.social_links, theme);
+
+        // 5. Fetch lists and links for this system
+        const lists = await Taqeemk.API.getLists(activeSystemData.user_id, activeSystemData.id);
+        const links = await Taqeemk.API.getLinks(activeSystemData.user_id, activeSystemData.id);
+
+        renderPublicContent(lists, links, themeColor, activeSystemData.button_style || 'rounded-xl', theme);
+        initShareQR();
+
+      } catch (err) {
+        console.error('Error loading public bio:', err);
+        renderSystemNotFound(slug);
+      }
+    }
+
+    function renderSocials(socials = {}, theme = null) {
+      const container = document.getElementById('bio-socials');
+      if (!socials || Object.keys(socials).length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+
+      const iconsMap = [
+        { key: 'whatsapp', svgKey: 'whatsapp', color: '#25d366' },
+        { key: 'instagram', svgKey: 'instagram', color: '#e1306c' },
+        { key: 'tiktok', svgKey: 'tiktok', color: '#00f2fe' },
+        { key: 'telegram', svgKey: 'telegram', color: '#229ed9' },
+        { key: 'facebook', svgKey: 'facebook', color: '#1877f2' },
+        { key: 'youtube', svgKey: 'youtube', color: '#ff0000' },
+        { key: 'linkedin', svgKey: 'linkedin', color: '#0A66C2' }
+      ];
+
+      const cardBg = theme ? theme.cardBg : 'rgba(30, 41, 59, 0.8)';
+      const cardBorder = theme ? theme.cardBorder : 'rgba(255, 255, 255, 0.1)';
+
+      const html = iconsMap
+        .filter(item => socials[item.key])
+        .map(item => `
+          <a href="${socials[item.key]}" target="_blank" class="w-8 h-8 rounded-full flex items-center justify-center transition-transform hover:scale-110 shadow p-1.5" style="background: ${cardBg}; border: 1px solid ${cardBorder}; color: ${item.color};">
+            ${Taqeemk.Icons.getSvg(item.svgKey)}
+          </a>
+        `).join('');
+
+      container.innerHTML = html;
+    }
+
+    function renderPublicContent(lists, links, themeColor, btnStyle, theme) {
+      const container = document.getElementById('bio-content-container');
+      const activeLinks = (links || []).filter(l => l.is_active);
+
+      if (!activeLinks.length) {
+        container.innerHTML = `
+          <div class="rounded-2xl p-6 text-center" style="background: ${theme.cardBg}; border: 1px solid ${theme.cardBorder}; color: ${theme.mutedText};">
+            <p class="text-xs">لم يتم إضافة روابط في هذا الملف بعد.</p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+
+      // Categorized lists
+      const validListIds = new Set((lists || []).map(l => String(l.id)));
+      if (lists && lists.length) {
+        lists.forEach(list => {
+          const listLinks = activeLinks.filter(l => l.list_id && String(l.list_id) === String(list.id));
+          if (listLinks.length) {
+            html += `
+              <div class="space-y-2.5">
+                <div class="flex items-center gap-2 px-1 text-xs font-bold" style="color: ${list.color || themeColor}">
+                  <i class="fa-solid fa-${list.icon || 'folder'} text-sm"></i>
+                  <span>${Taqeemk.Security.escapeHTML(list.title)}</span>
+                  ${list.description ? `<span class="text-[10px] font-normal" style="color: ${theme.mutedText};">(${Taqeemk.Security.escapeHTML(list.description)})</span>` : ''}
+                </div>
+
+                <div class="space-y-2">
+                  ${listLinks.map(l => renderLinkButton(l, themeColor, btnStyle, theme)).join('')}
+                </div>
+              </div>
+            `;
+          }
+        });
+      }
+
+      // Standalone links
+      const standalone = activeLinks.filter(l => !l.list_id || !validListIds.has(String(l.list_id)));
+      if (standalone.length) {
+        html += `
+          <div class="space-y-2">
+            ${standalone.map(l => renderLinkButton(l, themeColor, btnStyle, theme)).join('')}
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+    }
+
+    function renderDeactivatedAccount() {
+      const coverBanner = document.getElementById('public-cover-banner');
+      const shareTrigger = document.getElementById('btn-share-trigger');
+      if (coverBanner) coverBanner.classList.add('hidden');
+      if (shareTrigger) shareTrigger.classList.add('hidden');
+
+      const mainContainer = document.getElementById('public-main-container');
+      if (mainContainer) {
+        mainContainer.className = "w-full max-w-md mx-auto px-4 space-y-6 z-10 pt-16";
+        mainContainer.innerHTML = `
+          <div class="glass-panel rounded-3xl p-8 text-center border border-amber-500/30 shadow-2xl space-y-4">
+            <div class="w-16 h-16 mx-auto rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-2xl text-amber-400 shadow-inner">
+              <i class="fa-solid fa-lock"></i>
+            </div>
+            <h2 class="text-xl font-black text-white">هذا الحساب غير متاح حالياً</h2>
+            <p class="text-sm text-slate-300">
+              يرجى التواصل مع صاحب الصفحة أو مراجعة إدارة المنصة.
+            </p>
+          </div>
+        `;
+      }
+    }
+
+    function renderLinkButton(link, themeColor, btnStyle, theme) {
+      let finalUrl = link.url || '#';
+
+      // Convert any phone number or tel link (not already WhatsApp) to WhatsApp wa.me link
+      const isAlreadyWa = finalUrl.includes('wa.me') || finalUrl.includes('whatsapp.com');
+      const isTel = finalUrl.startsWith('tel:');
+      const isPhoneIcon = link.icon === 'phone';
+      const cleanDigits = finalUrl.replace(/^tel:/, '').replace(/[^\d+]/g, '');
+      const looksLikePhone = /^(\+?20|0020|0)?1[0125]\d{8}$/.test(cleanDigits);
+
+      if (!isAlreadyWa && (isTel || isPhoneIcon || looksLikePhone)) {
+        const phoneRaw = isTel ? finalUrl.replace(/^tel:/, '') : (looksLikePhone ? cleanDigits : link.title);
+        const waLink = Taqeemk.API.cleanPhoneToWhatsApp(phoneRaw);
+        if (waLink && waLink !== 'https://wa.me/') {
+          finalUrl = waLink;
+        }
+      }
+
+      const badge = Taqeemk.Icons.renderBadge(link.icon || 'link', 'w-8 h-8');
+      const isBorder = btnStyle === 'border-2';
+      const isPill = btnStyle === 'rounded-full';
+      const isGlass = btnStyle === 'glass-card';
+      const radiusClass = isPill ? 'rounded-full' : (btnStyle === 'rounded-xl' ? 'rounded-xl' : btnStyle);
+
+      let customStyle = '';
+      if (isBorder) {
+        customStyle = `border: 2px solid ${themeColor || theme.accent}; background: transparent; color: ${theme.textColor};`;
+      } else if (isGlass) {
+        customStyle = `background: ${theme.cardBg}; border: 1px solid ${theme.cardBorder}; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: ${theme.buttonText};`;
+      } else {
+        customStyle = `background: ${theme.buttonBg}; border: 1px solid ${theme.buttonBorder}; color: ${theme.buttonText};`;
+      }
+
+      return `
+        <a href="${finalUrl}" target="_blank" onclick="trackClick('${link.id}')" class="block w-full ${radiusClass} p-3 flex items-center justify-between group transition-all duration-300 hover:scale-[1.02] shadow-sm" style="${customStyle}">
+          <div class="flex items-center gap-3 overflow-hidden">
+            ${badge}
+            <span class="text-sm font-bold transition-colors truncate" style="color: inherit;">${Taqeemk.Security.escapeHTML(link.title)}</span>
+          </div>
+          <i class="fa-solid fa-arrow-left text-xs opacity-60 group-hover:opacity-100 transition-opacity" style="color: inherit;"></i>
+        </a>
+      `;
+    }
+
+    async function trackClick(linkId) {
+      try {
+        await Taqeemk.API.incrementLinkClick(linkId);
+      } catch (e) {}
+    }
+
+    function renderSystemNotFound(slug) {
+      const container = document.getElementById('bio-content-container');
+      container.innerHTML = `
+        <div class="glass-panel rounded-3xl p-8 text-center border border-slate-800 space-y-4">
+          <div class="w-16 h-16 mx-auto rounded-full bg-slate-800 flex items-center justify-center text-2xl text-slate-500">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <h2 class="text-lg font-bold text-white">الملف غير موجود</h2>
+          <p class="text-xs text-slate-400">الرابط (<span class="text-indigo-400 font-mono">@${slug}</span>) غير مسجل حالياً.</p>
+          <a href="index.html" class="btn-primary text-xs inline-flex px-5 py-2.5">
+            أنشئ ملفك الخاص على تقييمك الآن
+          </a>
+        </div>
+      `;
+    }
+
+    // Share Modal
+    function getShareBioUrl() {
+      const slug = activeSystemData?.slug || '';
+      const encoded = encodeURIComponent(String(slug).trim());
+      if (window.location && window.location.protocol === 'https:' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+        const origin = window.location.origin;
+        let path = window.location.pathname || '';
+        if (path.endsWith('/')) {
+          path = path + 'p.html';
+        } else {
+          path = path.replace(/\/[^/]*$/, '/p.html');
+        }
+        return `${origin}${path}?u=${encoded}`;
+      }
+      return `https://taqeemk-egypt.github.io/Taqeemk.EG./p.html?u=${encoded}`;
+    }
+
+    function initShareQR() {
+      const url = getShareBioUrl();
+      Taqeemk.QREngine.render('share-qr-box', url, {
+        fg_color: '#000000',
+        bg_color: '#ffffff',
+        size: 256,
+        margin: 16,
+        high_compatibility: true
+      });
+    }
+
+    function openShareModal() {
+      initShareQR();
+      document.getElementById('share-modal').classList.remove('hidden');
+    }
+
+    function closeShareModal() {
+      document.getElementById('share-modal').classList.add('hidden');
+    }
+
+    function copyShareLink() {
+      const url = getShareBioUrl();
+      navigator.clipboard.writeText(url).then(() => {
+        alert('تم نسخ الرابط إلى الحافظة!');
+      });
+    }
+
+    function downloadShareQR() {
+      const slug = activeSystemData?.slug || 'profile';
+      const url = getShareBioUrl();
+      Taqeemk.QREngine.downloadPNG(url, `taqeemk-${slug}.png`, 1024);
+    }
+
+    function downloadShareQRSVG() {
+      const slug = activeSystemData?.slug || 'profile';
+      const url = getShareBioUrl();
+      Taqeemk.QREngine.downloadSVG(url, `taqeemk-${slug}.svg`, 1024);
+    }
+  </script>
+
+</body>
+</html>

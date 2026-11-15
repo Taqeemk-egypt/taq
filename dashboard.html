@@ -1,0 +1,2246 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>لوحة التحكم | تقييمك - إدارة الأنظمة والروابط وأكواد QR</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              DEFAULT: '#6366f1',
+              600: '#4f46e5',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts & Font Awesome 6 Icons (All Free & Brands CDN) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- QR Code Styling & Fallback Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+  <!-- App Custom Styles -->
+  <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body class="bg-[#090d16] text-slate-100 min-h-screen flex flex-col">
+
+  <!-- ==============================================================================
+       NAVBAR
+       ============================================================================== -->
+  <header class="glass-nav sticky top-0 z-40 px-3 sm:px-6 py-2.5 sm:py-3 border-b border-slate-800">
+    <div class="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-2">
+
+      <!-- Brand Logo & Active System Indicator -->
+      <div class="flex items-center gap-2 sm:gap-4 shrink-0 overflow-hidden">
+        <a href="index.html" class="flex items-center gap-2 shrink-0">
+          <div
+            class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-400 flex items-center justify-center text-white shadow-md shrink-0">
+            <i class="fa-solid fa-qrcode text-sm sm:text-base"></i>
+          </div>
+          <span class="text-lg sm:text-xl font-black text-white hidden sm:inline tracking-tight">تقييمك</span>
+        </a>
+
+        <div class="h-5 w-px bg-slate-800 hidden md:block"></div>
+
+        <!-- Active System Badge & Quick URL -->
+        <div class="flex items-center gap-1.5 sm:gap-2 bg-slate-900/80 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl border border-slate-800 max-w-[180px] sm:max-w-xs">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+          <span id="nav-active-system-title" class="text-xs font-bold text-white max-w-[80px] sm:max-w-[140px] truncate">جاري التحميل...</span>
+          <span class="text-slate-600 hidden sm:inline">|</span>
+          <a id="nav-active-system-url" href="#" target="_blank" dir="ltr"
+            class="text-[11px] font-mono text-cyan-400 hover:underline max-w-[150px] truncate hidden sm:inline">
+            /p.html
+          </a>
+        </div>
+      </div>
+
+      <!-- Actions & Profile Menu -->
+      <div class="flex flex-wrap items-center gap-1.5 sm:gap-3 shrink-0 justify-end">
+        <button onclick="copyActiveSystemLink()" class="btn-secondary text-xs px-2.5 sm:px-3 py-1.5 whitespace-nowrap" title="نسخ رابط الصفحة">
+          <i class="fa-regular fa-copy sm:ml-1"></i>
+          <span class="hidden sm:inline">نسخ الرابط</span>
+        </button>
+
+        <a id="nav-open-preview-btn" href="#" target="_blank"
+          class="btn-secondary text-xs px-2.5 sm:px-3 py-1.5 text-cyan-400 border-cyan-500/30 whitespace-nowrap" title="فتح الصفحة العامة">
+          <i class="fa-solid fa-arrow-up-right-from-square sm:ml-1"></i>
+          <span class="hidden sm:inline">معاينة مباشرة</span>
+        </a>
+
+        <a id="admin-shortcut" href="admin.html"
+          class="hidden btn-secondary text-xs px-2.5 sm:px-3 py-1.5 text-amber-400 border-amber-500/30 whitespace-nowrap">
+          <i class="fa-solid fa-shield-halved sm:ml-1"></i>
+          <span class="hidden sm:inline">لوحة الإدارة</span>
+        </a>
+
+        <div class="flex items-center gap-1 sm:gap-2 pr-1 sm:pr-2 border-r border-slate-800 shrink-0">
+          <img id="nav-user-avatar" src="https://api.dicebear.com/7.x/identicon/svg?seed=user" alt="Avatar"
+            class="w-7 h-7 rounded-full border border-indigo-500/50 object-cover">
+          <button onclick="handleLogout()" class="text-slate-400 hover:text-red-400 text-xs p-1.5" title="تسجيل الخروج">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ==============================================================================
+       PAYMENT ACTIVATION NOTICE BANNER (For Pending/Unactivated Accounts)
+       ============================================================================== -->
+  <div id="activation-banner" class="hidden"></div>
+
+  <!-- ==============================================================================
+       THREE-COLUMN LAYOUT:
+       Column 1 (Sidebar): "ملفاتك" (Unlimited Systems Manager)
+       Column 2 (Center): Tabs Work Area (اللينكات, المظهر, تحليلات, QR, الاشتراك)
+       Column 3 (Left on RTL): Live Smartphone Mockup Preview (معاينة حية)
+       ============================================================================== -->
+  <main class="flex-1 max-w-[1600px] w-full mx-auto p-3 sm:p-5 lg:p-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- ========================================================================
+           COLUMN 1 (Right): "ملفاتك" - UNLIMITED SYSTEMS / MULTI-PAGE MANAGER
+           ======================================================================== -->
+      <aside class="lg:col-span-3 glass-panel rounded-2xl p-4 sm:p-5 border border-slate-800 space-y-4">
+
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-folder-tree text-indigo-400 text-sm"></i>
+            <h3 class="text-sm font-bold text-white">ملفاتك (الأنظمة)</h3>
+            <span id="systems-count-badge"
+              class="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-bold">1</span>
+          </div>
+
+          <!-- New System Button -->
+          <button onclick="openCreateSystemModal()" class="btn-primary text-xs px-3 py-1.5 shadow-sm">
+            <i class="fa-solid fa-plus text-[10px]"></i> ملف جديد
+          </button>
+        </div>
+
+        <!-- Search Systems Input -->
+        <div class="relative">
+          <input type="text" id="systems-search-input" oninput="filterSystems(this.value)"
+            placeholder="بحث في ملفاتك..." class="w-full glass-input rounded-xl px-3 py-1.5 text-xs pr-8">
+          <i class="fa-solid fa-magnifying-glass absolute right-2.5 top-2.5 text-slate-500 text-xs"></i>
+        </div>
+
+        <!-- Systems List Container (Rendered dynamically) -->
+        <div id="systems-list-container" class="space-y-2.5 max-h-[580px] overflow-y-auto pr-1">
+          <!-- Dynamic System Cards render here -->
+        </div>
+
+      </aside>
+
+      <!-- ========================================================================
+           COLUMN 2 (Center): MAIN WORK AREA WITH TABS
+           ======================================================================== -->
+      <section class="lg:col-span-5 space-y-5">
+
+        <!-- Tabs Header Bar -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-slate-800 scrollbar-none">
+          <button onclick="switchTab('links')" id="tab-btn-links"
+            class="tab-btn active px-3.5 py-2 text-xs font-bold rounded-xl flex items-center gap-2 transition-all bg-indigo-600 text-white shadow-md">
+            <i class="fa-solid fa-link text-xs"></i> اللينكات
+          </button>
+
+          <button onclick="switchTab('appearance')" id="tab-btn-appearance"
+            class="tab-btn px-3.5 py-2 text-xs font-bold rounded-xl flex items-center gap-2 transition-all text-slate-400 hover:text-white bg-slate-800/40">
+            <i class="fa-solid fa-palette text-xs"></i> المظهر
+          </button>
+
+          <button onclick="switchTab('analytics')" id="tab-btn-analytics"
+            class="tab-btn px-3.5 py-2 text-xs font-bold rounded-xl flex items-center gap-2 transition-all text-slate-400 hover:text-white bg-slate-800/40">
+            <i class="fa-solid fa-chart-line text-xs"></i> تحليلات
+          </button>
+
+          <button onclick="switchTab('qr')" id="tab-btn-qr"
+            class="tab-btn px-3.5 py-2 text-xs font-bold rounded-xl flex items-center gap-2 transition-all text-slate-400 hover:text-white bg-slate-800/40">
+            <i class="fa-solid fa-qrcode text-xs"></i> أكواد QR
+          </button>
+
+          <button onclick="switchTab('subscription')" id="tab-btn-subscription"
+            class="tab-btn px-3.5 py-2 text-xs font-bold rounded-xl flex items-center gap-2 transition-all text-slate-400 hover:text-white bg-slate-800/40 relative">
+            <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i> حالة الحساب
+            <span id="tab-sub-badge"
+              class="hidden w-2 h-2 rounded-full bg-amber-400 absolute top-1 right-1 animate-ping"></span>
+          </button>
+        </div>
+
+        <!-- ----------------------------------------------------------------------
+             TAB 1: اللينكات (LINKS & CATEGORIZED LISTS)
+             ---------------------------------------------------------------------- -->
+        <div id="panel-links" class="space-y-5">
+
+          <!-- Actions Header -->
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-white">روابط الملف الحالي</h3>
+              <p class="text-[11px] text-slate-400">إدارة الروابط وتوزيعها داخل القوائم</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="openCreateListModal()" class="btn-secondary text-xs px-3 py-1.5">
+                <i class="fa-solid fa-folder-plus ml-1 text-cyan-400"></i> قائمة جديدة
+              </button>
+              <button onclick="openCreateLinkModal()" class="btn-primary text-xs px-3.5 py-1.5">
+                <i class="fa-solid fa-plus ml-1"></i> إضافة رابط
+              </button>
+            </div>
+          </div>
+
+          <!-- Links Container -->
+          <div id="links-list-container" class="space-y-3">
+            <!-- Dynamic links render here -->
+          </div>
+
+        </div>
+
+        <!-- ----------------------------------------------------------------------
+             TAB 2: المظهر (APPEARANCE, COVER & PROFILE PICTURE UPLOADS)
+             ---------------------------------------------------------------------- -->
+        <div id="panel-appearance" class="space-y-6 hidden">
+
+          <!-- Section 1: Header Layout Selector -->
+          <div class="glass-panel rounded-2xl p-5 border border-slate-800 space-y-4">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-2.5">
+              <i class="fa-solid fa-layer-group text-indigo-400"></i> تخطيط الهيدر (Header Layout)
+            </h3>
+            <p class="text-xs text-slate-400">اختر أسلوب عرض الجزء العلوي لصفحتك:</p>
+
+            <div class="header-layout-scroll-container">
+              <!-- Cover + Avatar Layout Card -->
+              <div onclick="setHeaderLayout('cover')" id="hl-card-cover"
+                class="header-layout-card cursor-pointer p-2.5 rounded-xl flex flex-col items-center justify-between border transition-all shrink-0 w-[120px] text-center relative">
+                <div class="w-full h-11 rounded-lg bg-slate-900 border border-slate-700/80 flex flex-col items-center justify-center overflow-hidden relative shadow mb-2">
+                  <div class="w-full h-4.5 bg-gradient-to-r from-indigo-600 to-cyan-500"></div>
+                  <div class="w-5 h-5 rounded-full bg-slate-800 border-2 border-slate-900 -mt-2.5 flex items-center justify-center text-[8px] text-white">
+                    <i class="fa-solid fa-user"></i>
+                  </div>
+                </div>
+                <div class="w-full flex items-center justify-center gap-1">
+                  <span class="text-xs font-bold text-white whitespace-nowrap">غلاف وبانر</span>
+                  <i id="hl-check-cover" class="fa-solid fa-circle-check text-indigo-400 text-xs hidden shrink-0"></i>
+                </div>
+              </div>
+
+              <!-- Avatar Only Layout Card -->
+              <div onclick="setHeaderLayout('avatar')" id="hl-card-avatar"
+                class="header-layout-card cursor-pointer p-2.5 rounded-xl flex flex-col items-center justify-between border transition-all shrink-0 w-[120px] text-center relative">
+                <div class="w-full h-11 rounded-lg bg-slate-900 border border-slate-700/80 flex items-center justify-center overflow-hidden shadow mb-2">
+                  <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center text-[10px] text-white shadow">
+                    <i class="fa-solid fa-user"></i>
+                  </div>
+                </div>
+                <div class="w-full flex items-center justify-center gap-1">
+                  <span class="text-xs font-bold text-white whitespace-nowrap">صورة شخصية</span>
+                  <i id="hl-check-avatar" class="fa-solid fa-circle-check text-indigo-400 text-xs hidden shrink-0"></i>
+                </div>
+              </div>
+
+              <!-- Portrait / Full Image Layout Card -->
+              <div onclick="setHeaderLayout('portrait')" id="hl-card-portrait"
+                class="header-layout-card cursor-pointer p-2.5 rounded-xl flex flex-col items-center justify-between border transition-all shrink-0 w-[120px] text-center relative">
+                <div class="w-full h-11 rounded-lg bg-slate-900 border border-slate-700/80 flex flex-col justify-end overflow-hidden relative shadow mb-2">
+                  <div class="w-full h-full bg-cover bg-center absolute inset-0" style="background-image: url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80');"></div>
+                  <div class="w-full h-4 bg-gradient-to-t from-black via-black/80 to-transparent relative z-10 flex items-center justify-center">
+                    <span class="w-5 h-1 bg-white/90 rounded-full"></span>
+                  </div>
+                </div>
+                <div class="w-full flex items-center justify-center gap-1">
+                  <span class="text-xs font-bold text-white whitespace-nowrap">صورة كاملة</span>
+                  <i id="hl-check-portrait" class="fa-solid fa-circle-check text-indigo-400 text-xs hidden shrink-0"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Profile Picture & Cover Upload Box -->
+          <div class="glass-panel rounded-2xl p-5 border border-slate-800 space-y-5">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-2.5">
+              <i class="fa-solid fa-image text-cyan-400"></i> صورة البروفايل وخلفية الغلاف
+            </h3>
+
+            <!-- Cover Background Upload Box -->
+            <div id="cover-upload-section">
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-xs font-bold text-slate-300">خلفية الغلاف (Cover Banner):</label>
+                <span id="cover-disabled-notice" class="text-[10px] text-amber-400 hidden">
+                  <i class="fa-solid fa-circle-info ml-0.5"></i> (الغلاف مخفي عند اختيار نمط الصورة فقط)
+                </span>
+              </div>
+              <div
+                class="relative w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-700/80 group" style="aspect-ratio: 16/6;">
+                <img id="appearance-cover-preview"
+                  src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80"
+                  alt="Cover Preview" class="w-full h-full object-cover" style="aspect-ratio: 16/6; object-fit: cover;">
+                <div
+                  class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-3 transition-opacity">
+                  <button onclick="document.getElementById('cover-file-input').click()"
+                    class="btn-primary text-xs px-3 py-1.5">
+                    <i class="fa-solid fa-cloud-arrow-up ml-1"></i> رفع صورة من جهازك
+                  </button>
+                </div>
+              </div>
+              <input type="file" id="cover-file-input" accept="image/*" class="hidden"
+                onchange="handleCoverFileSelected(this)">
+
+              <div class="flex items-center gap-2 mt-2">
+                <input type="url" id="appearance-cover-url" oninput="handleCoverUrlInput(this.value)"
+                  placeholder="أو الصق رابط صورة الغلاف مباشرة..." dir="ltr"
+                  class="flex-1 glass-input rounded-xl px-3 py-1.5 text-xs">
+              </div>
+            </div>
+
+            <!-- Circular Profile Picture Upload Box -->
+            <div class="flex flex-col sm:flex-row items-center gap-4 pt-2">
+              <div
+                class="relative w-20 h-20 rounded-full ring-2 ring-indigo-500/80 p-0.5 shadow-xl flex-shrink-0 group" style="aspect-ratio: 1/1;">
+                <img id="appearance-avatar-preview" src="https://api.dicebear.com/7.x/identicon/svg?seed=user"
+                  alt="Avatar" class="w-full h-full rounded-full object-cover bg-slate-900" style="aspect-ratio: 1/1; object-fit: cover;">
+                <button onclick="document.getElementById('avatar-file-input').click()"
+                  class="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs transition-opacity"
+                  title="تغيير الصورة">
+                  <i class="fa-solid fa-camera"></i>
+                </button>
+              </div>
+              <input type="file" id="avatar-file-input" accept="image/*" class="hidden"
+                onchange="handleAvatarFileSelected(this)">
+
+              <div class="flex-1 space-y-2 w-full">
+                <label class="block text-xs font-bold text-slate-300">صورة البروفايل الدائرية:</label>
+                <div class="flex items-center gap-2">
+                  <button onclick="document.getElementById('avatar-file-input').click()"
+                    class="btn-secondary text-xs px-3 py-1.5">
+                    <i class="fa-solid fa-upload ml-1 text-cyan-400"></i> رفع من جهازك
+                  </button>
+                  <input type="url" id="appearance-avatar-url" oninput="handleAvatarUrlInput(this.value)"
+                    placeholder="أو رابط الصورة..." dir="ltr" class="flex-1 glass-input rounded-xl px-3 py-1.5 text-xs">
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Section 3: Central Themes Grid (10 Themes) -->
+          <div class="glass-panel rounded-2xl p-5 border border-slate-800 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-palette text-amber-400"></i> ثيم الصفحة (10 ثيمات حصرية)
+              </h3>
+              <span id="active-theme-name-badge" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                أورورا (الافتراضي)
+              </span>
+            </div>
+
+            <p class="text-xs text-slate-400">اختر نمط الألوان المناسب لصفحتك؛ يتم تطبيقه فوراً على المعاينة الحية والصفحة العامة:</p>
+
+            <div id="themes-grid-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              <!-- Dynamically populated by renderThemesGrid() from window.THEMES -->
+            </div>
+          </div>
+
+          <!-- Section 4: Identity & Branding Details -->
+          <div class="glass-panel rounded-2xl p-5 border border-slate-800 space-y-4">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-2.5">
+              <i class="fa-solid fa-fingerprint text-indigo-400"></i> تفاصيل الهوية والألوان
+            </h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1">اسم النظام / الصفحة:</label>
+                <input type="text" id="appearance-title" oninput="liveUpdateAppearance()"
+                  class="w-full glass-input rounded-xl px-3 py-2 text-xs">
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1">الرابط المخصص (Slug):</label>
+                <input type="text" id="appearance-slug" oninput="liveUpdateAppearance()" dir="ltr"
+                  class="w-full glass-input rounded-xl px-3 py-2 text-xs font-mono">
+              </div>
+
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-bold text-slate-300 mb-1">النبذة التعريفية (Bio):</label>
+                <textarea id="appearance-bio" rows="2" oninput="liveUpdateAppearance()"
+                  class="w-full glass-input rounded-xl px-3 py-2 text-xs resize-none"></textarea>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1">اللون المميز (Theme Color - تجاوز اختياري):</label>
+                <div class="flex items-center gap-2 glass-input rounded-xl p-1.5">
+                  <input type="color" id="appearance-theme-color" value="#6366f1" onchange="liveUpdateAppearance()"
+                    class="w-6 h-6 rounded-lg cursor-pointer bg-transparent border-0">
+                  <span id="appearance-theme-hex" class="text-xs font-mono text-slate-300">#6366f1</span>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1">شكل الأزرار (Button Style):</label>
+                <select id="appearance-button-style" onchange="liveUpdateAppearance()"
+                  class="w-full glass-input rounded-xl px-3 py-2 text-xs">
+                  <option value="rounded-xl">حواف ناعمة (Rounded)</option>
+                  <option value="rounded-full">حواف دائرية (Pill)</option>
+                  <option value="glass-card">تصميم زجاجي (Glass)</option>
+                  <option value="border-2">إطار محدد (Outlined)</option>
+                </select>
+              </div>
+
+              <!-- Verification Badge Toggle -->
+              <div class="sm:col-span-2 pt-3 border-t border-slate-800/80">
+                <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800">
+                  <div class="flex-1 pr-2">
+                    <div class="flex items-center gap-1.5 text-xs font-bold text-white">
+                      <span>إظهار علامة التوثيق</span>
+                      <i class="fa-solid fa-circle-check text-blue-500 text-sm"></i>
+                      <span>بجانب الاسم</span>
+                    </div>
+                    <p id="verification-status-desc" class="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                      طلب إظهار شارة التوثيق الزرقاء بجانب اسم صفحتك (تتطلب مراجعة واعتماد الإدارة للظهور العام).
+                    </p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                    <input type="checkbox" id="toggle-verification" class="sr-only peer" onchange="handleVerificationToggle(this.checked)">
+                    <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Social Media Icons Manager -->
+          <div class="glass-panel rounded-2xl p-5 border border-slate-800 space-y-4">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-2.5">
+              <i class="fa-solid fa-share-nodes text-emerald-400"></i> حسابات التواصل السريعة (أعلى الصفحة)
+            </h3>
+
+            <div class="space-y-2.5">
+              <!-- WhatsApp -->
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center p-1.5 shadow"
+                  style="background: linear-gradient(135deg, #25d366, #128c7e); color: #fff;">
+                  <i class="fa-brands fa-whatsapp text-sm"></i>
+                </div>
+                <input type="url" id="social-whatsapp" oninput="liveUpdateAppearance()"
+                  placeholder="https://wa.me/201503773224" dir="ltr"
+                  class="flex-1 glass-input rounded-xl px-3 py-1.5 text-xs font-mono">
+              </div>
+
+              <!-- Instagram -->
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center p-1.5 shadow"
+                  style="background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: #fff;">
+                  <i class="fa-brands fa-instagram text-sm"></i>
+                </div>
+                <input type="url" id="social-instagram" oninput="liveUpdateAppearance()"
+                  placeholder="https://instagram.com/username" dir="ltr"
+                  class="flex-1 glass-input rounded-xl px-3 py-1.5 text-xs font-mono">
+              </div>
+
+              <!-- TikTok -->
+              <div class="flex items-center gap-2.5">
+                <div
+                  class="w-8 h-8 rounded-lg flex items-center justify-center p-1.5 shadow bg-black border border-slate-700 text-white">
+                  <i class="fa-brands fa-tiktok text-sm"></i>
+                </div>
+                <input type="url" id="social-tiktok" oninput="liveUpdateAppearance()"
+                  placeholder="https://tiktok.com/@username" dir="ltr"
+                  class="flex-1 glass-input rounded-xl px-3 py-1.5 text-xs font-mono">
+              </div>
+
+              <!-- Telegram -->
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center p-1.5 shadow bg-[#229ed9] text-white">
+                  <i class="fa-brands fa-telegram text-sm"></i>
+                </div>
+                <input type="url" id="social-telegram" oninput="liveUpdateAppearance()"
+                  placeholder="https://t.me/username" dir="ltr"
+                  class="flex-1 glass-input rounded-xl px-3 py-1.5 text-xs font-mono">
+              </div>
+
+              <!-- Facebook -->
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center p-1.5 shadow bg-[#1877f2] text-white">
+                  <i class="fa-brands fa-facebook text-sm"></i>
+                </div>
+                <input type="url" id="social-facebook" oninput="liveUpdateAppearance()"
+                  placeholder="https://facebook.com/username" dir="ltr"
+                  class="flex-1 glass-input rounded-xl px-3 py-1.5 text-xs font-mono">
+              </div>
+
+              <!-- YouTube -->
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center p-1.5 shadow bg-[#ff0000] text-white">
+                  <i class="fa-brands fa-youtube text-sm"></i>
+                </div>
+                <input type="url" id="social-youtube" oninput="liveUpdateAppearance()"
+                  placeholder="https://youtube.com/@channel" dir="ltr"
+                  class="flex-1 glass-input rounded-xl px-3 py-1.5 text-xs font-mono">
+              </div>
+
+              <!-- LinkedIn -->
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center p-1.5 shadow bg-[#0A66C2] text-white">
+                  <i class="fa-brands fa-linkedin-in text-sm"></i>
+                </div>
+                <input type="url" id="social-linkedin" oninput="liveUpdateAppearance()"
+                  placeholder="https://linkedin.com/in/username" dir="ltr"
+                  class="flex-1 glass-input rounded-xl px-3 py-1.5 text-xs font-mono">
+              </div>
+            </div>
+
+            <div class="pt-2 flex justify-end">
+              <button onclick="saveAppearanceSettings()" class="btn-primary text-xs px-5 py-2">
+                <i class="fa-solid fa-floppy-disk ml-1"></i> حفظ وتثبيت المظهر
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ----------------------------------------------------------------------
+             TAB 3: تحليلات (ANALYTICS)
+             ---------------------------------------------------------------------- -->
+        <div id="panel-analytics" class="space-y-5 hidden">
+          <div class="grid grid-cols-2 gap-3.5">
+            <div class="glass-card rounded-xl p-4 border border-slate-800">
+              <p class="text-[11px] text-slate-400 font-bold">إجمالي مشاهدات الصفحة</p>
+              <p id="analytics-views" class="text-2xl font-black text-cyan-400 mt-1">0</p>
+            </div>
+            <div class="glass-card rounded-xl p-4 border border-slate-800">
+              <p class="text-[11px] text-slate-400 font-bold">إجمالي نقرات الروابط</p>
+              <p id="analytics-clicks" class="text-2xl font-black text-emerald-400 mt-1">0</p>
+            </div>
+            <div class="glass-card rounded-xl p-4 border border-slate-800">
+              <p class="text-[11px] text-slate-400 font-bold">مسحات أكواد QR</p>
+              <p id="analytics-scans" class="text-2xl font-black text-indigo-400 mt-1">0</p>
+            </div>
+            <div class="glass-card rounded-xl p-4 border border-slate-800">
+              <p class="text-[11px] text-slate-400 font-bold">معدل التفاعل (CTR)</p>
+              <p id="analytics-ctr" class="text-2xl font-black text-amber-400 mt-1">0%</p>
+            </div>
+          </div>
+
+          <div class="glass-panel rounded-2xl p-4 border border-slate-800 space-y-3">
+            <h4 class="text-xs font-bold text-white">الروابط الأكثر نقراً في هذا النظام:</h4>
+            <div id="analytics-top-links" class="space-y-2"></div>
+          </div>
+        </div>
+
+        <!-- ----------------------------------------------------------------------
+             TAB 4: أكواد QR (QR CODE STUDIO)
+             ---------------------------------------------------------------------- -->
+        <div id="panel-qr" class="space-y-6 hidden">
+          
+          <!-- Section 1: Active System Auto-Generated QR Code Card (المهمة 3 و 4) -->
+          <div class="glass-panel rounded-3xl p-6 sm:p-7 border border-slate-800 space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-4">
+              <div>
+                <h3 class="text-base font-black text-white flex items-center gap-2">
+                  <i class="fa-solid fa-qrcode text-indigo-400"></i> كود QR الخاص بالملف النشط
+                </h3>
+                <p class="text-xs text-slate-400 mt-0.5">
+                  يتولد تلقائياً لملفك وصفحة البايو، ويتحدث فورياً عند التبديل بين ملفاتك
+                </p>
+              </div>
+              <div id="active-system-qr-badge" class="self-start sm:self-auto"></div>
+            </div>
+
+            <!-- Empty State if no active file / username -->
+            <div id="active-qr-empty-state" class="hidden glass-card rounded-2xl p-8 text-center border border-slate-800">
+              <div class="w-16 h-16 mx-auto rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 mb-3 text-2xl">
+                <i class="fa-solid fa-qrcode"></i>
+              </div>
+              <h4 class="text-sm font-bold text-slate-200 mb-1">اسم المستخدم للملف غير محدد</h4>
+              <p class="text-xs text-slate-400 max-w-sm mx-auto">
+                يرجى اختيار ملف من القائمة الجانبية أو تحديد اسم المستخدم (Slug) في تبويب المظهر لعرض وتوليد كود الـ QR الخاص به.
+              </p>
+            </div>
+
+            <!-- Main Active QR Box Container -->
+            <div id="active-qr-content" class="flex flex-col items-center space-y-4">
+              <!-- Visual QR Code Box: 256x256 minimum, white bg, dark #000 with quiet zone margin -->
+              <div class="bg-white rounded-3xl p-4 sm:p-5 shadow-2xl flex items-center justify-center border-4 border-indigo-500/20">
+                <div id="active-system-qr-container" class="w-full max-w-[256px] aspect-square flex items-center justify-center">
+                  <!-- QR renders here dynamically -->
+                </div>
+              </div>
+
+              <!-- URL Info and Copy/Open Controls -->
+              <div class="w-full max-w-md space-y-2">
+                <label class="block text-[11px] font-bold text-slate-400">رابط الصفحة العام الموجه له الـ QR:</label>
+                <div class="flex items-center gap-2">
+                  <input type="text" id="active-system-qr-url-input" readonly dir="ltr"
+                    class="flex-1 glass-input rounded-xl px-3 py-2 text-xs font-mono text-cyan-300 select-all border border-slate-800 bg-slate-950/80">
+                  <button onclick="copyActiveSystemBioUrl()" class="btn-primary text-xs px-3.5 py-2 flex items-center gap-1.5 flex-shrink-0" title="نسخ الرابط">
+                    <i class="fa-regular fa-copy"></i>
+                    <span>نسخ</span>
+                  </button>
+                  <button onclick="openActiveSystemBioUrl()" class="btn-secondary text-xs px-3.5 py-2 flex items-center gap-1.5 flex-shrink-0" title="فتح الرابط">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>فتح</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Download Action Buttons (المهمة 4) -->
+              <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+                <button onclick="downloadActiveSystemQRPNG()" class="btn-primary text-xs px-5 py-2.5 flex items-center gap-2 shadow-lg hover:shadow-indigo-500/25">
+                  <i class="fa-solid fa-download text-cyan-400"></i>
+                  <span>تنزيل PNG (1024×1024)</span>
+                </button>
+                <button onclick="downloadActiveSystemQRSVG()" class="btn-secondary text-xs px-5 py-2.5 flex items-center gap-2 border border-slate-700 hover:border-slate-500">
+                  <i class="fa-solid fa-vector-square text-emerald-400"></i>
+                  <span>تنزيل SVG</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Section 2: Additional Custom QR Codes (Dynamic / Static) -->
+          <div class="glass-panel rounded-3xl p-6 border border-slate-800 space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h4 class="text-sm font-bold text-white">أكواد QR إضافية ومخصصة</h4>
+                <p class="text-[11px] text-slate-400">إنشاء أكواد ديناميكية قابلة لتعديل الوجهة في أي وقت</p>
+              </div>
+              <button onclick="openCreateQRModal()" class="btn-secondary text-xs px-3.5 py-1.5 text-cyan-300 border-cyan-500/30">
+                <i class="fa-solid fa-plus ml-1"></i> كود مخصص إضافي
+              </button>
+            </div>
+
+            <div id="qr-codes-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+          </div>
+
+        </div>
+
+        <!-- ----------------------------------------------------------------------
+             TAB 5: حالة الحساب (ACCOUNT STATUS)
+             ---------------------------------------------------------------------- -->
+        <div id="panel-subscription" class="space-y-5 hidden">
+          <div class="glass-panel rounded-2xl p-6 border border-slate-800 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div>
+                <h3 class="text-base font-black text-white">حالة الحساب</h3>
+                <p class="text-xs text-slate-400">حسابك نشط ومفعل بكامل الميزات وبلا حدود</p>
+              </div>
+              <div id="subscription-status-badge">
+                <span class="px-2.5 py-1 rounded-full badge-active text-xs font-bold"><i class="fa-solid fa-circle-check ml-1"></i> مفعل نشط</span>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-300 space-y-2">
+              <div class="flex items-center gap-2 text-emerald-400 font-bold">
+                <i class="fa-solid fa-circle-check"></i>
+                <span>جميع ميزات المنصة متاحة لك بلا قيود</span>
+              </div>
+              <p class="text-slate-400 text-[11px] leading-relaxed">
+                يمكنك إنشاء وتعديل أنظمتك وملفاتك، واستخدام استوديو QR بالكامل، وتخصيص هوية صفحاتك بحرية.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================================================
+           COLUMN 3 (Left on RTL): STICKY LIVE SMARTPHONE MOCKUP PREVIEW
+           ======================================================================== -->
+      <aside class="lg:col-span-4 sticky top-20 flex flex-col items-center">
+
+        <div class="w-full max-w-[320px] flex items-center justify-between mb-2.5 px-2">
+          <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            معاينة حية (Live Preview)
+          </span>
+          <div class="flex items-center gap-2">
+            <button onclick="refreshPhonePreview()" class="text-xs text-slate-400 hover:text-indigo-400"
+              title="تحديث المعاينة">
+              <i class="fa-solid fa-rotate-right"></i>
+            </button>
+            <a id="phone-preview-open-link" href="#" target="_blank" class="text-xs text-slate-400 hover:text-cyan-400"
+              title="فتح كنافذة كاملة">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Phone Mockup Frame -->
+        <div class="phone-mockup-frame">
+          <div class="phone-dynamic-island"></div>
+
+          <div id="phone-preview-body" class="phone-screen-content">
+            <!-- Dynamic phone content renders here in real-time -->
+          </div>
+        </div>
+
+      </aside>
+
+    </div>
+  </main>
+
+  <!-- ==============================================================================
+       MODAL: CREATE / EDIT LINK WITH SOCIAL BRAND GRID SELECTOR ("اختر نوع اللينك")
+       ============================================================================== -->
+  <div id="link-modal"
+    class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-panel w-full max-w-lg rounded-3xl p-6 relative border border-slate-700 shadow-2xl my-6 max-h-[90vh] overflow-y-auto">
+      <button onclick="closeLinkModal()" class="absolute top-5 left-5 text-slate-400 hover:text-white">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <h3 id="link-modal-title" class="text-base font-bold text-white mb-3">إضافة رابط جديد</h3>
+
+      <!-- Brand Icon Grid Selector -->
+      <div class="mb-4">
+        <label class="block text-xs font-bold text-slate-300 mb-2">اختر نوع اللينك:</label>
+        <div id="link-types-grid" class="grid grid-cols-3 sm:grid-cols-3 gap-2.5">
+          <!-- Rendered dynamically from Taqeemk.Icons.TYPES -->
+        </div>
+      </div>
+
+      <form onsubmit="handleLinkSubmit(event)" class="space-y-3.5">
+        <input type="hidden" id="link-icon-type" value="instagram">
+
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">عنوان الرابط (الاسم المعروض):</label>
+          <input type="text" id="link-title" required placeholder="مثال: تابعنا على إنستجرام"
+            class="w-full glass-input rounded-xl px-3.5 py-2 text-xs">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">رابط الوجهة (URL):</label>
+          <input type="url" id="link-url" required placeholder="https://..." dir="ltr"
+            class="w-full glass-input rounded-xl px-3.5 py-2 text-xs font-mono">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">القائمة / الفئة:</label>
+          <select id="link-list-select" class="w-full glass-input rounded-xl px-3.5 py-2 text-xs">
+            <option value="">-- بدون قائمة (رابط منفرد) --</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn-primary w-full py-2.5 text-xs mt-2">
+          حفظ الرابط
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE SYSTEM (+ ملف جديد) -->
+  <div id="system-modal"
+    class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-panel w-full max-w-md rounded-3xl p-6 relative border border-slate-700 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <button onclick="closeCreateSystemModal()" class="absolute top-5 left-5 text-slate-400 hover:text-white">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-folder-plus text-indigo-400"></i> إنشاء ملف / نظام جديد
+      </h3>
+
+      <form onsubmit="handleCreateSystemSubmit(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">اسم النظام / النشاط:</label>
+          <input type="text" id="new-sys-title" required placeholder="مثال: مطعم الحارة، متجر العطور، ملفي الشخصي"
+            class="w-full glass-input rounded-xl px-3.5 py-2 text-sm">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">الرابط المخصص (Slug):</label>
+          <div class="relative">
+            <input type="text" id="new-sys-slug" required placeholder="hara-restaurant" dir="ltr"
+              class="w-full glass-input rounded-xl px-3.5 py-2 text-sm pl-16">
+            <span class="absolute left-3 top-2.5 text-[10px] text-slate-400 font-mono">/p?u=</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">نبذة سريعة:</label>
+          <textarea id="new-sys-bio" rows="2" placeholder="وصف موجز يظهر أسفل الاسم في صفحة البايو..."
+            class="w-full glass-input rounded-xl px-3.5 py-2 text-sm resize-none"></textarea>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">اللون المميز:</label>
+          <div class="flex items-center gap-3 glass-input rounded-xl p-1.5">
+            <input type="color" id="new-sys-color" value="#f59e0b"
+              class="w-7 h-7 rounded-lg cursor-pointer bg-transparent border-0">
+            <span class="text-xs text-slate-300 font-mono">#f59e0b</span>
+          </div>
+        </div>
+
+        <button type="submit" id="new-sys-submit-btn" class="btn-primary w-full py-2.5 text-sm mt-2">
+          <i class="fa-solid fa-check ml-1"></i> إنشاء الملف الآن
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE LIST -->
+  <div id="list-modal"
+    class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-panel w-full max-w-md rounded-3xl p-6 relative border border-slate-700 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <button onclick="closeListModal()" class="absolute top-5 left-5 text-slate-400 hover:text-white">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <h3 class="text-base font-bold text-white mb-4">إنشاء قائمة مصنفة جديدة</h3>
+
+      <form onsubmit="handleListSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">اسم القائمة:</label>
+          <input type="text" id="list-title" required placeholder="مثال: قائمة المشروبات الساخنة"
+            class="w-full glass-input rounded-xl px-3.5 py-2 text-sm">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">وصف موجز (اختياري):</label>
+          <input type="text" id="list-desc" placeholder="تصفح مشروباتنا الحصرية"
+            class="w-full glass-input rounded-xl px-3.5 py-2 text-sm">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">أيقونة القائمة:</label>
+          <select id="list-icon" class="w-full glass-input rounded-xl px-3.5 py-2 text-sm">
+            <option value="folder">مجلد عادي (Folder)</option>
+            <option value="mug-hot">قهوة ومشروبات (Coffee)</option>
+            <option value="tag">عروض وخصومات (Offers)</option>
+            <option value="phone">اتصال وتواصل (Contact)</option>
+            <option value="star">المميزات (Featured)</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn-primary w-full py-2.5 text-sm mt-2">
+          إنشاء القائمة
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE QR CODE -->
+  <div id="qr-modal"
+    class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-panel w-full max-w-md rounded-3xl p-6 relative border border-slate-700 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <button onclick="closeQRModal()" class="absolute top-5 left-5 text-slate-400 hover:text-white">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-qrcode text-indigo-400"></i> إنشاء كود QR جديد للنظام
+      </h3>
+
+      <form onsubmit="handleQRSubmit(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">نوع الكود:</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label
+              class="flex items-center gap-2 p-2.5 rounded-xl border border-indigo-500/40 bg-indigo-950/20 cursor-pointer">
+              <input type="radio" name="qr-type-radio" value="dynamic" checked>
+              <span class="font-bold text-white">ديناميكي (قابل للتعديل)</span>
+            </label>
+            <label
+              class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-700 bg-slate-900/30 cursor-pointer">
+              <input type="radio" name="qr-type-radio" value="static">
+              <span class="font-bold text-white">ثابت (مباشر)</span>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">اسم الكود:</label>
+          <input type="text" id="qr-title" required placeholder="مثال: كود منيو الطاولات"
+            class="w-full glass-input rounded-xl px-3 py-2 text-xs">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">رابط الوجهة:</label>
+          <input type="text" inputmode="url" id="qr-target-url" required placeholder="https://..." dir="ltr"
+            class="w-full glass-input rounded-xl px-3 py-2 text-xs font-mono">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-300 mb-1">لون الكود:</label>
+            <input type="color" id="qr-fg-color" value="#0f172a"
+              class="w-full h-8 rounded-lg cursor-pointer bg-slate-900 border border-slate-700">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-300 mb-1">لون الخلفية:</label>
+            <input type="color" id="qr-bg-color" value="#ffffff"
+              class="w-full h-8 rounded-lg cursor-pointer bg-slate-900 border border-slate-700">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary w-full py-2.5 text-xs mt-2">
+          توليد وحفظ الكود
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- App Configuration & Logic Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="theme.js"></script>
+  <script src="app.js"></script>
+
+  <script>
+    // URL Helpers (Issue 3)
+    const getBaseUrl = () => location.origin + location.pathname.replace(/[^/]*$/, '');
+    const normalizeUrl = (u) => {
+      if (!u) return '';
+      const trimmed = String(u).trim();
+      if (!trimmed) return '';
+      if (/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(trimmed)) return trimmed;
+      return 'https://' + trimmed;
+    };
+    function getSystemBioUrl(username) {
+      if (!username) return '';
+      return `${getBaseUrl()}p.html?u=${encodeURIComponent(String(username).trim())}`;
+    }
+
+    // State
+    let currentUser = null;
+    let currentProfile = null;
+    let userSystems = [];
+    let activeSystem = null;
+    let systemLists = [];
+    let systemLinks = [];
+    let systemQRs = [];
+    let selectedLinkType = 'instagram';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Sync wallet number from config
+      const walletNumber = window.TAQEEMK_CONFIG?.TARGET_WALLET_NUMBER || '01503773224';
+      const bannerWallet = document.getElementById('banner-wallet-number');
+      if (bannerWallet) bannerWallet.textContent = walletNumber;
+      const subWallet = document.getElementById('subscription-wallet-number');
+      if (subWallet) subWallet.textContent = walletNumber;
+
+      try {
+        const session = await Taqeemk.API.getSession() || Taqeemk.API.getCurrentSession();
+        if (!session || !session.user) {
+          console.warn('No active session, redirecting to index.html...');
+          window.location.href = 'index.html';
+          return;
+        }
+        currentUser = session.user;
+        renderLinkTypesGrid();
+        renderThemesGrid();
+        await initDashboard();
+      } catch (err) {
+        console.error('Initialization error during DOMContentLoaded:', err);
+        window.location.href = 'index.html';
+      }
+    });
+
+    // ---------------- LINK TYPES GRID SELECTOR ("اختر نوع اللينك") ----------------
+    function renderLinkTypesGrid() {
+      const container = document.getElementById('link-types-grid');
+      container.innerHTML = Taqeemk.Icons.TYPES.map(t => {
+        const isSelected = selectedLinkType === t.id;
+        const svg = Taqeemk.Icons.getSvg(t.iconKey);
+        return `
+          <div onclick="selectLinkType('${t.id}')" id="lt-card-${t.id}" class="glass-card cursor-pointer p-2.5 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all text-center border ${isSelected ? 'border-indigo-500 bg-indigo-950/40 shadow-md ring-1 ring-indigo-500' : 'border-slate-800 hover:border-slate-700'}">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-sm p-1.5" style="${t.bgStyle}">
+              ${svg}
+            </div>
+            <span class="text-[11px] font-bold text-slate-200">${t.label}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectLinkType(typeId) {
+      selectedLinkType = typeId;
+      document.getElementById('link-icon-type').value = typeId;
+
+      const type = Taqeemk.Icons.TYPES.find(t => t.id === typeId);
+      if (type) {
+        document.getElementById('link-title').value = type.defaultTitle;
+        document.getElementById('link-url').placeholder = type.placeholder;
+      }
+
+      // Update styling in grid
+      Taqeemk.Icons.TYPES.forEach(t => {
+        const el = document.getElementById(`lt-card-${t.id}`);
+        if (el) {
+          if (t.id === typeId) {
+            el.className = 'glass-card cursor-pointer p-2.5 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all text-center border border-indigo-500 bg-indigo-950/40 shadow-md ring-1 ring-indigo-500 scale-105';
+          } else {
+            el.className = 'glass-card cursor-pointer p-2.5 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all text-center border border-slate-800 hover:border-slate-700';
+          }
+        }
+      });
+    }
+
+    async function initDashboard() {
+      try {
+        console.log('--- Initializing Taqeemk Dashboard ---');
+        console.log('Authenticated User ID from session:', currentUser?.id);
+        console.log('Authenticated User Email:', currentUser?.email);
+
+        currentProfile = await Taqeemk.API.getCurrentProfile() || currentUser;
+
+        if (currentProfile?.avatar_url) {
+          const avatarEl = document.getElementById('nav-user-avatar');
+          if (avatarEl) avatarEl.src = currentProfile.avatar_url;
+        }
+        if (currentProfile?.is_admin === true) {
+          const adminShortcut = document.getElementById('admin-shortcut');
+          if (adminShortcut) adminShortcut.classList.remove('hidden');
+        }
+
+        await checkActivationStatus();
+
+        // 1. Fetch user's systems from Supabase
+        console.log('Fetching systems from Supabase for user:', currentUser.id);
+        try {
+          userSystems = await Taqeemk.API.getSystems(currentUser.id);
+          console.log('Supabase user systems result:', userSystems);
+        } catch (fetchErr) {
+          console.error('Failed to fetch user systems from Supabase:', fetchErr);
+          userSystems = [];
+        }
+
+        // 2. If user has no systems, insert default one using authenticated user's ID
+        if (!userSystems || userSystems.length === 0) {
+          console.log('User has no systems in Supabase. Inserting default system for user:', currentUser.id);
+          const rawSlug = currentProfile?.username || currentUser.user_metadata?.username || ('user_' + currentUser.id.substring(0, 6));
+          const cleanSlug = Taqeemk.Security.sanitizeSlug(rawSlug);
+          const defaultSysData = {
+            user_id: currentUser.id,
+            title: currentProfile?.display_name || currentUser.user_metadata?.display_name || 'ملفي الشخصي',
+            slug: cleanSlug,
+            bio: 'مرحباً بكم في صفحتي على تقييمك',
+            theme_color: currentProfile?.theme_color || '#6366f1',
+            theme_style: 'glass',
+            button_style: 'rounded-xl',
+            is_default: true,
+            is_active: true
+          };
+
+          try {
+            const created = await Taqeemk.API.createSystem(currentUser.id, defaultSysData);
+            console.log('Default system auto-created in Supabase:', created);
+            if (created) {
+              userSystems = [created];
+              activeSystem = created;
+              Taqeemk.API.setActiveSystemId(created.id);
+            }
+          } catch (createErr) {
+            console.error('Error inserting default system into Supabase:', createErr);
+            Taqeemk.UI.showToast('تعذر إنشاء الملف الافتراضي في Supabase: ' + (createErr.message || ''), 'error');
+          }
+        } else {
+          // Select saved active system or the first system
+          const storedSysId = Taqeemk.API.getActiveSystemId();
+          activeSystem = userSystems.find(s => s.id === storedSysId) || userSystems[0];
+          if (activeSystem) {
+            Taqeemk.API.setActiveSystemId(activeSystem.id);
+          }
+        }
+
+        renderSystemsList();
+        await loadActiveSystemData();
+
+      } catch (err) {
+        console.error('Error initializing dashboard:', err);
+      }
+    }
+
+    // ---------------- SYSTEMS / "ملفاتك" ----------------
+    function renderSystemsList() {
+      const container = document.getElementById('systems-list-container');
+      const badge = document.getElementById('systems-count-badge');
+      badge.textContent = userSystems.length;
+
+      container.innerHTML = userSystems.map(sys => {
+        const isActive = activeSystem && activeSystem.id === sys.id;
+        return `
+          <div onclick="selectSystem('${sys.id}')" class="system-card ${isActive ? 'system-card-active' : ''} p-3 rounded-xl cursor-pointer flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 overflow-hidden">
+              <img src="${sys.avatar_url || 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=100&q=80'}" class="w-[2.75rem] h-[2.75rem] rounded-lg object-cover flex-shrink-0 border border-slate-700" style="width: 2.75rem; height: 2.75rem; object-fit: cover; flex-shrink: 0; aspect-ratio: 1/1;">
+              <div class="overflow-hidden">
+                <h4 class="text-xs font-bold text-white truncate">${sys.title}</h4>
+                <p class="text-[10px] text-cyan-400 font-mono truncate">@${sys.slug}</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+              ${isActive ? `<span class="w-2 h-2 rounded-full bg-emerald-400"></span>` : ''}
+              ${userSystems.length > 1 ? `
+                <button onclick="event.stopPropagation(); deleteSystemItem('${sys.id}')" class="text-slate-500 hover:text-red-400 text-xs p-1" title="حذف الملف">
+                  <i class="fa-regular fa-trash-can"></i>
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function filterSystems(term) {
+      term = term.trim().toLowerCase();
+      const filtered = userSystems.filter(s =>
+        s.title.toLowerCase().includes(term) || s.slug.toLowerCase().includes(term)
+      );
+      const container = document.getElementById('systems-list-container');
+      container.innerHTML = filtered.map(sys => {
+        const isActive = activeSystem && activeSystem.id === sys.id;
+        return `
+          <div onclick="selectSystem('${sys.id}')" class="system-card ${isActive ? 'system-card-active' : ''} p-3 rounded-xl cursor-pointer flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 overflow-hidden">
+              <img src="${sys.avatar_url || 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=100&q=80'}" class="w-[2.75rem] h-[2.75rem] rounded-lg object-cover flex-shrink-0 border border-slate-700" style="width: 2.75rem; height: 2.75rem; object-fit: cover; flex-shrink: 0; aspect-ratio: 1/1;">
+              <div class="overflow-hidden">
+                <h4 class="text-xs font-bold text-white truncate">${sys.title}</h4>
+                <p class="text-[10px] text-cyan-400 font-mono truncate">@${sys.slug}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function selectSystem(systemId) {
+      activeSystem = userSystems.find(s => s.id === systemId);
+      if (activeSystem) {
+        Taqeemk.API.setActiveSystemId(activeSystem.id);
+        renderSystemsList();
+        await loadActiveSystemData();
+        Taqeemk.UI.showToast(`تم التبديل إلى: ${activeSystem.title}`);
+      }
+    }
+
+    function openCreateSystemModal() {
+      document.getElementById('new-sys-title').value = '';
+      document.getElementById('new-sys-slug').value = '';
+      document.getElementById('new-sys-bio').value = '';
+      document.getElementById('system-modal').classList.remove('hidden');
+    }
+
+    function closeCreateSystemModal() {
+      document.getElementById('system-modal').classList.add('hidden');
+    }
+
+    async function handleCreateSystemSubmit(e) {
+      e.preventDefault();
+      const title = document.getElementById('new-sys-title').value;
+      const slug = document.getElementById('new-sys-slug').value;
+      const bio = document.getElementById('new-sys-bio').value;
+      const themeColor = document.getElementById('new-sys-color').value;
+
+      try {
+        const created = await Taqeemk.API.createSystem(currentUser.id, {
+          title,
+          slug,
+          bio,
+          theme_color: themeColor
+        });
+
+        userSystems = await Taqeemk.API.getSystems(currentUser.id);
+        activeSystem = created;
+        Taqeemk.API.setActiveSystemId(created.id);
+
+        closeCreateSystemModal();
+        renderSystemsList();
+        await loadActiveSystemData();
+
+        Taqeemk.UI.celebrate();
+        Taqeemk.UI.showToast('تم إنشاء الملف الجديد بنجاح!');
+      } catch (err) {
+        console.error('Error creating system:', err);
+        Taqeemk.UI.showToast(err.message || 'حدث خطأ في إنشاء الملف', 'error');
+      }
+    }
+
+    async function deleteSystemItem(systemId) {
+      const confirm = await Swal.fire({
+        title: 'حذف هذا الملف؟',
+        text: 'سيتم حذف هذا النظام وروابطه بالكامل.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'نعم، احذف',
+        cancelButtonText: 'إلغاء',
+        confirmButtonColor: '#ef4444',
+        background: '#1e293b',
+        color: '#f8fafc'
+      });
+
+      if (confirm.isConfirmed) {
+        try {
+          await Taqeemk.API.deleteSystem(systemId);
+          userSystems = await Taqeemk.API.getSystems(currentUser.id);
+          activeSystem = userSystems[0] || null;
+          Taqeemk.API.setActiveSystemId(activeSystem?.id || null);
+          renderSystemsList();
+          await loadActiveSystemData();
+          Taqeemk.UI.showToast('تم حذف الملف.');
+        } catch (err) {
+          console.error('Error deleting system:', err);
+          Taqeemk.UI.showToast(err.message || 'حدث خطأ في حذف الملف', 'error');
+        }
+      }
+    }
+
+    // ---------------- LOAD ACTIVE SYSTEM DATA ----------------
+    async function loadActiveSystemData() {
+      if (!activeSystem) {
+        document.getElementById('nav-active-system-title').textContent = 'لا يوجد ملف نشط';
+        document.getElementById('nav-active-system-url').textContent = '/p.html';
+        document.getElementById('nav-active-system-url').href = '#';
+        document.getElementById('nav-open-preview-btn').href = '#';
+        document.getElementById('phone-preview-open-link').href = '#';
+
+        systemLists = [];
+        systemLinks = [];
+        systemQRs = [];
+        renderLinks();
+        renderQRCodes();
+        populateListSelects();
+        refreshAnalytics();
+        refreshPhonePreview();
+        return;
+      }
+
+      document.getElementById('nav-active-system-title').textContent = activeSystem.title;
+      const publicUrl = getSystemBioUrl(activeSystem.slug);
+      document.getElementById('nav-active-system-url').textContent = `/p.html?u=${encodeURIComponent(activeSystem.slug)}`;
+      document.getElementById('nav-active-system-url').href = publicUrl;
+      document.getElementById('nav-open-preview-btn').href = publicUrl;
+      document.getElementById('phone-preview-open-link').href = publicUrl;
+
+      // Inputs
+      document.getElementById('appearance-title').value = activeSystem.title || '';
+      document.getElementById('appearance-slug').value = activeSystem.slug || '';
+      document.getElementById('appearance-bio').value = activeSystem.bio || '';
+      document.getElementById('appearance-cover-preview').src = activeSystem.cover_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80';
+      document.getElementById('appearance-cover-url').value = activeSystem.cover_url || '';
+      document.getElementById('appearance-avatar-preview').src = activeSystem.avatar_url || 'https://api.dicebear.com/7.x/identicon/svg?seed=user';
+      document.getElementById('appearance-avatar-url').value = activeSystem.avatar_url || '';
+      document.getElementById('appearance-theme-color').value = activeSystem.theme_color || '#6366f1';
+      document.getElementById('appearance-theme-hex').textContent = activeSystem.theme_color || '#6366f1';
+      document.getElementById('appearance-button-style').value = activeSystem.button_style || 'rounded-xl';
+
+      // Theme and Header Layout Selection
+      selectTheme(activeSystem.theme || 'aurora', false);
+      setHeaderLayout(activeSystem.header_layout || 'cover', false);
+
+      const s = activeSystem.social_links || {};
+      document.getElementById('social-whatsapp').value = s.whatsapp || '';
+      document.getElementById('social-instagram').value = s.instagram || '';
+      document.getElementById('social-tiktok').value = s.tiktok || '';
+      document.getElementById('social-telegram').value = s.telegram || '';
+      document.getElementById('social-facebook').value = s.facebook || '';
+      document.getElementById('social-youtube').value = s.youtube || '';
+      document.getElementById('social-linkedin').value = s.linkedin || '';
+
+      updateVerificationToggleUI();
+
+      try {
+        systemLists = await Taqeemk.API.getLists(currentUser.id, activeSystem.id);
+        systemLinks = await Taqeemk.API.getLinks(currentUser.id, activeSystem.id);
+        systemQRs = await Taqeemk.API.getQRCodes(currentUser.id, activeSystem.id);
+      } catch (err) {
+        console.error('Error fetching system links/lists/QRs:', err);
+      }
+
+      renderLinks();
+      renderQRCodes();
+      renderActiveSystemQR();
+      populateListSelects();
+      refreshAnalytics();
+      refreshPhonePreview();
+    }
+
+    // ---------------- THEMES & HEADER LAYOUT CONTROLS ----------------
+    function renderThemesGrid() {
+      const container = document.getElementById('themes-grid-container');
+      if (!container || !window.THEMES) return;
+
+      const currentThemeId = (activeSystem && activeSystem.theme) ? activeSystem.theme : 'aurora';
+
+      container.innerHTML = Object.values(window.THEMES).map(theme => {
+        const isSelected = theme.id === currentThemeId;
+        return `
+          <div onclick="selectTheme('${theme.id}')" id="theme-card-${theme.id}"
+            class="theme-picker-card ${isSelected ? 'active ring-2 ring-indigo-500 border-indigo-500 bg-indigo-950/40 shadow-lg scale-105' : 'border-slate-800 hover:border-slate-700'} cursor-pointer p-3 rounded-2xl border flex flex-col items-center justify-between transition-all relative">
+            <div class="w-full h-12 rounded-xl mb-2 p-1.5 flex flex-col justify-between shadow-inner relative overflow-hidden"
+              style="background: ${theme.background};">
+              <div class="flex items-center justify-between">
+                <span class="w-2.5 h-2.5 rounded-full shadow" style="background: ${theme.accent};"></span>
+                <span id="theme-check-${theme.id}" class="w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[9px] shadow ${isSelected ? '' : 'hidden'}">
+                  <i class="fa-solid fa-check"></i>
+                </span>
+              </div>
+              <div class="w-full h-3 rounded-md px-1 flex items-center shadow-sm" style="background: ${theme.cardBg}; border: 1px solid ${theme.cardBorder};">
+                <div class="w-2/3 h-1.5 rounded-sm" style="background: ${theme.buttonBg};"></div>
+              </div>
+            </div>
+            <span class="text-xs font-bold text-white block text-center">${theme.name}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectTheme(themeId, triggerUpdate = true) {
+      if (!activeSystem) return;
+      const theme = window.getTaqeemkTheme ? window.getTaqeemkTheme(themeId) : (window.THEMES?.[themeId] || window.THEMES?.aurora);
+      activeSystem.theme = theme.id;
+
+      const badge = document.getElementById('active-theme-name-badge');
+      if (badge) badge.textContent = `${theme.name} (${theme.id === 'aurora' ? 'الافتراضي' : 'محدد'})`;
+
+      if (window.THEMES) {
+        Object.values(window.THEMES).forEach(t => {
+          const card = document.getElementById(`theme-card-${t.id}`);
+          const check = document.getElementById(`theme-check-${t.id}`);
+          if (card) {
+            if (t.id === theme.id) {
+              card.className = 'theme-picker-card active cursor-pointer p-3 rounded-2xl border flex flex-col items-center justify-between transition-all scale-105 ring-2 ring-indigo-500 border-indigo-500 bg-indigo-950/40 shadow-lg';
+            } else {
+              card.className = 'theme-picker-card cursor-pointer p-3 rounded-2xl border border-slate-800 hover:border-slate-700 flex flex-col items-center justify-between transition-all hover:scale-[1.02]';
+            }
+          }
+          if (check) {
+            if (t.id === theme.id) check.classList.remove('hidden');
+            else check.classList.add('hidden');
+          }
+        });
+      }
+
+      if (triggerUpdate) {
+        liveUpdateAppearance();
+      }
+    }
+
+    function setHeaderLayout(layout, triggerUpdate = true) {
+      if (!activeSystem) return;
+      activeSystem.header_layout = ['avatar', 'portrait'].includes(layout) ? layout : 'cover';
+
+      const cardCover = document.getElementById('hl-card-cover');
+      const cardAvatar = document.getElementById('hl-card-avatar');
+      const cardPortrait = document.getElementById('hl-card-portrait');
+      const checkCover = document.getElementById('hl-check-cover');
+      const checkAvatar = document.getElementById('hl-check-avatar');
+      const checkPortrait = document.getElementById('hl-check-portrait');
+      const notice = document.getElementById('cover-disabled-notice');
+
+      const activeClasses = 'header-layout-card active cursor-pointer p-2.5 rounded-xl flex flex-col items-center justify-between border transition-all shrink-0 w-[120px] text-center relative ring-2 ring-indigo-500 border-indigo-500 bg-indigo-950/40 shadow-lg';
+      const inactiveClasses = 'header-layout-card cursor-pointer p-2.5 rounded-xl flex flex-col items-center justify-between border border-slate-800 transition-all hover:border-slate-700 shrink-0 w-[120px] text-center relative';
+
+      if (cardCover) cardCover.className = activeSystem.header_layout === 'cover' ? activeClasses : inactiveClasses;
+      if (cardAvatar) cardAvatar.className = activeSystem.header_layout === 'avatar' ? activeClasses : inactiveClasses;
+      if (cardPortrait) cardPortrait.className = activeSystem.header_layout === 'portrait' ? activeClasses : inactiveClasses;
+
+      if (checkCover) checkCover.classList.toggle('hidden', activeSystem.header_layout !== 'cover');
+      if (checkAvatar) checkAvatar.classList.toggle('hidden', activeSystem.header_layout !== 'avatar');
+      if (checkPortrait) checkPortrait.classList.toggle('hidden', activeSystem.header_layout !== 'portrait');
+
+      if (notice) notice.classList.toggle('hidden', activeSystem.header_layout !== 'avatar');
+
+      if (triggerUpdate) {
+        liveUpdateAppearance();
+      }
+    }
+
+    // ---------------- APPEARANCE & IMAGE UPLOADS ----------------
+    async function handleCoverFileSelected(input) {
+      if (!activeSystem) {
+        Taqeemk.UI.showToast('يرجى إنشاء ملف أولاً قبل تعديل المظهر.', 'warning');
+        return;
+      }
+      if (input.files && input.files[0]) {
+        try {
+          Taqeemk.UI.showToast('جاري رفع صورة الغلاف...', 'info');
+          const coverUrl = await Taqeemk.API.uploadImage(input.files[0], 'covers');
+          document.getElementById('appearance-cover-preview').src = coverUrl;
+          document.getElementById('appearance-cover-url').value = coverUrl;
+          activeSystem.cover_url = coverUrl;
+          refreshPhonePreview();
+          Taqeemk.UI.showToast('تم رفع صورة الغلاف بنجاح!');
+        } catch (e) {
+          Taqeemk.UI.showToast('فشل رفع الصورة', 'error');
+        }
+      }
+    }
+
+    function handleCoverUrlInput(url) {
+      if (!activeSystem) return;
+      if (url) {
+        document.getElementById('appearance-cover-preview').src = url;
+        activeSystem.cover_url = url;
+        refreshPhonePreview();
+      }
+    }
+
+    async function handleAvatarFileSelected(input) {
+      if (!activeSystem) {
+        Taqeemk.UI.showToast('يرجى إنشاء ملف أولاً قبل تعديل المظهر.', 'warning');
+        return;
+      }
+      if (input.files && input.files[0]) {
+        try {
+          Taqeemk.UI.showToast('جاري رفع صورة البروفايل...', 'info');
+          const avatarUrl = await Taqeemk.API.uploadImage(input.files[0], 'avatars');
+          document.getElementById('appearance-avatar-preview').src = avatarUrl;
+          document.getElementById('appearance-avatar-url').value = avatarUrl;
+          activeSystem.avatar_url = avatarUrl;
+          refreshPhonePreview();
+          Taqeemk.UI.showToast('تم رفع صورة البروفايل بنجاح!');
+        } catch (e) {
+          Taqeemk.UI.showToast('فشل رفع الصورة', 'error');
+        }
+      }
+    }
+
+    function handleAvatarUrlInput(url) {
+      if (!activeSystem) return;
+      if (url) {
+        document.getElementById('appearance-avatar-preview').src = url;
+        activeSystem.avatar_url = url;
+        refreshPhonePreview();
+      }
+    }
+
+    function updateVerificationToggleUI() {
+      const toggle = document.getElementById('toggle-verification');
+      const desc = document.getElementById('verification-status-desc');
+      if (!toggle || !desc) return;
+
+      const isVerifiedByAdmin = Boolean(currentProfile?.is_verified);
+      const savedState = localStorage.getItem('taqeemk_show_verified_' + (currentProfile?.id || 'default'));
+      const isEnabled = savedState === null ? isVerifiedByAdmin : (savedState === '1');
+
+      toggle.checked = isEnabled;
+
+      if (isVerifiedByAdmin) {
+        desc.innerHTML = isEnabled
+          ? `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-check ml-1"></i>حسابك موثق رسمياً من الإدارة!</span> شارة التوثيق مفعلة وتظهر لزوار صفحتك.`
+          : `<span class="text-slate-400">حسابك موثق من الإدارة، لكنك قمت بإخفاء الشارة مؤقتاً.</span>`;
+      } else {
+        desc.innerHTML = isEnabled
+          ? `<span class="text-amber-400 font-bold"><i class="fa-solid fa-clock ml-1"></i>تم تقديم طلب التوثيق!</span> بانتظار مراجعة واعتماد الإدارة ليظهر للزوار (معروض الآن في المعاينة لتجربته).`
+          : `طلب إظهار شارة التوثيق الزرقاء بجانب اسم صفحتك (تتطلب مراجعة واعتماد الإدارة للظهور العام).`;
+      }
+    }
+
+    function handleVerificationToggle(isChecked) {
+      if (!currentProfile) return;
+      const isVerifiedByAdmin = Boolean(currentProfile?.is_verified);
+      localStorage.setItem('taqeemk_show_verified_' + currentProfile.id, isChecked ? '1' : '0');
+
+      updateVerificationToggleUI();
+
+      if (isVerifiedByAdmin) {
+        Taqeemk.UI.showToast(isChecked ? 'تم إظهار علامة التوثيق بنجاح!' : 'تم إخفاء علامة التوثيق');
+      } else {
+        if (isChecked) {
+          Taqeemk.UI.showToast('تم إرسال طلب التوثيق! سيتم مراجعته واعتماده من قِبل الإدارة.', 'info');
+        } else {
+          Taqeemk.UI.showToast('تم إلغاء طلب التوثيق.');
+        }
+      }
+
+      refreshPhonePreview();
+    }
+
+    function liveUpdateAppearance() {
+      if (!activeSystem) return;
+      activeSystem.title = document.getElementById('appearance-title').value;
+      activeSystem.slug = Taqeemk.Security.sanitizeSlug(document.getElementById('appearance-slug').value);
+      activeSystem.bio = document.getElementById('appearance-bio').value;
+      activeSystem.theme_color = document.getElementById('appearance-theme-color').value;
+      document.getElementById('appearance-theme-hex').textContent = activeSystem.theme_color;
+      activeSystem.button_style = document.getElementById('appearance-button-style').value;
+      activeSystem.theme = activeSystem.theme || 'aurora';
+      activeSystem.header_layout = activeSystem.header_layout || 'cover';
+
+      activeSystem.social_links = {
+        whatsapp: document.getElementById('social-whatsapp').value,
+        instagram: document.getElementById('social-instagram').value,
+        tiktok: document.getElementById('social-tiktok').value,
+        telegram: document.getElementById('social-telegram').value,
+        facebook: document.getElementById('social-facebook').value,
+        youtube: document.getElementById('social-youtube').value,
+        linkedin: document.getElementById('social-linkedin').value
+      };
+
+      const navTitle = document.getElementById('nav-active-system-title');
+      if (navTitle) navTitle.textContent = activeSystem.title;
+      refreshPhonePreview();
+    }
+
+    async function saveAppearanceSettings() {
+      if (!activeSystem || !activeSystem.id) {
+        Taqeemk.UI.showToast('لا يوجد ملف نشط لحفظ إعداداته.', 'warning');
+        return;
+      }
+      liveUpdateAppearance();
+      try {
+        await Taqeemk.API.updateSystem(activeSystem.id, {
+          title: activeSystem.title,
+          slug: activeSystem.slug,
+          bio: activeSystem.bio,
+          avatar_url: activeSystem.avatar_url,
+          cover_url: activeSystem.cover_url,
+          theme: activeSystem.theme || 'aurora',
+          header_layout: activeSystem.header_layout || 'cover',
+          theme_color: activeSystem.theme_color,
+          button_style: activeSystem.button_style,
+          social_links: activeSystem.social_links
+        });
+        userSystems = await Taqeemk.API.getSystems(currentUser.id);
+        renderSystemsList();
+        renderActiveSystemQR();
+        Taqeemk.UI.showToast('تم حفظ إعدادات ومظهر الملف بنجاح!');
+      } catch (err) {
+        console.error('Error saving appearance settings:', err);
+        Taqeemk.UI.showToast(err.message || 'حدث خطأ في الحفظ', 'error');
+      }
+    }
+
+    // ---------------- LIVE PHONE PREVIEW WITH AUTHENTIC BRAND ICONS ----------------
+    function refreshPhonePreview() {
+      const container = document.getElementById('phone-preview-body');
+      if (!container) return;
+
+      if (!activeSystem) {
+        container.innerHTML = `
+          <div class="p-8 text-center flex flex-col items-center justify-center min-h-[350px]">
+            <div class="w-14 h-14 rounded-2xl bg-slate-800/80 border border-slate-700 flex items-center justify-center text-slate-400 mb-3 text-2xl shadow-inner">
+              <i class="fa-solid fa-folder-open"></i>
+            </div>
+            <h4 class="text-xs font-bold text-slate-300 mb-1">لا يوجد ملف نشط حالياً</h4>
+            <p class="text-[10px] text-slate-500 mb-4 max-w-[200px] leading-relaxed">أنشئ ملفاً جديداً لتبدأ بإضافة الروابط وتخصيص المظهر</p>
+            <button onclick="openCreateSystemModal()" class="btn-primary text-xs px-3.5 py-1.5">
+              <i class="fa-solid fa-plus ml-1"></i> إنشاء ملف
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      const themeId = activeSystem.theme || 'aurora';
+      const theme = window.getTaqeemkTheme ? window.getTaqeemkTheme(themeId) : (window.THEMES?.[themeId] || window.THEMES?.aurora);
+      const themeColor = activeSystem.theme_color || theme.accent || '#6366f1';
+      const headerLayout = activeSystem.header_layout || 'cover';
+      const coverUrl = activeSystem.cover_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80';
+      const avatarUrl = activeSystem.avatar_url || 'https://api.dicebear.com/7.x/identicon/svg?seed=user';
+      const btnStyleClass = activeSystem.button_style || 'rounded-xl';
+
+      // Apply theme CSS variables and styling directly to preview container
+      if (window.applyTaqeemkTheme) {
+        window.applyTaqeemkTheme(container, themeId, themeColor);
+      }
+      container.style.background = theme.background;
+      container.style.color = theme.textColor;
+
+      let html = '';
+
+      // Header Layout
+      if (headerLayout === 'cover') {
+        html += `
+          <!-- Cover Banner -->
+          <div class="phone-cover-banner" style="background-image: url('${coverUrl}');">
+            <div class="phone-cover-overlay"></div>
+          </div>
+
+          <!-- Overlapping Profile Picture & Header -->
+          <div class="text-center px-4 relative z-10">
+            <div class="phone-avatar-overlap w-20 h-20 mx-auto rounded-full ring-4 ring-black/40 p-0.5 shadow-2xl relative shrink-0 aspect-square" style="background: linear-gradient(135deg, ${themeColor}, #06b6d4); aspect-ratio: 1/1; flex-shrink: 0;">
+              <img src="${avatarUrl}" alt="Avatar" class="w-full h-full object-cover rounded-full bg-slate-900" style="width: 100%; height: 100%; object-fit: cover; border-radius: 9999px;">
+            </div>
+        `;
+      } else if (headerLayout === 'portrait') {
+        html += `
+          <!-- Full-Bleed Portrait Header with Bottom Fade Mask -->
+          <div class="phone-portrait-header relative w-full overflow-hidden rounded-t-2xl mb-4 border-t border-x border-white/10" style="background: transparent;">
+            <div class="phone-portrait-bg absolute inset-0 bg-cover bg-center pointer-events-none" style="background-image: url('${coverUrl || avatarUrl}');"></div>
+            <div class="phone-portrait-scrim absolute inset-0 pointer-events-none"></div>
+            <div class="text-center px-4 pt-10 pb-4 relative z-10">
+              <div class="w-16 h-16 mx-auto rounded-full ring-2 ring-white/90 p-0.5 shadow-xl relative shrink-0 aspect-square mb-1.5" style="background: linear-gradient(135deg, ${themeColor}, #06b6d4);">
+                <img src="${avatarUrl}" alt="Avatar" class="w-full h-full object-cover rounded-full bg-slate-900" style="width: 100%; height: 100%; object-fit: cover; border-radius: 9999px;">
+              </div>
+        `;
+      } else {
+        html += `
+          <!-- Avatar Only Layout -->
+          <div class="text-center px-4 pt-7 relative z-10">
+            <div class="w-20 h-20 mx-auto rounded-full ring-4 ring-white/10 p-0.5 shadow-2xl relative shrink-0 aspect-square" style="background: linear-gradient(135deg, ${themeColor}, #06b6d4); aspect-ratio: 1/1; flex-shrink: 0;">
+              <img src="${avatarUrl}" alt="Avatar" class="w-full h-full object-cover rounded-full bg-slate-900" style="width: 100%; height: 100%; object-fit: cover; border-radius: 9999px;">
+            </div>
+        `;
+      }
+
+      const isVerifiedByAdmin = Boolean(currentProfile?.is_verified);
+      const vToggle = document.getElementById('toggle-verification');
+      const savedVState = localStorage.getItem('taqeemk_show_verified_' + (currentProfile?.id || 'default'));
+      const showVerified = vToggle ? vToggle.checked : (savedVState === null ? isVerifiedByAdmin : (savedVState === '1'));
+      const verifiedBadgeHtml = showVerified
+        ? `<i class="fa-solid fa-circle-check text-blue-500 text-xs mr-1 inline-block align-middle" title="حساب موثق"></i>`
+        : '';
+
+      html += `
+          <h4 class="text-sm font-black mt-2 flex items-center justify-center gap-1" style="color: ${theme.textColor};">
+            ${Taqeemk.Security.escapeHTML(activeSystem.title)} ${verifiedBadgeHtml}
+          </h4>
+          <p class="text-[10px] font-mono" style="color: ${theme.mutedText};">@${Taqeemk.Security.escapeHTML(activeSystem.slug)}</p>
+          <p class="text-[11px] mt-1 leading-relaxed line-clamp-3" style="color: ${theme.textColor};">${Taqeemk.Security.escapeHTML(activeSystem.bio || '')}</p>
+
+          <!-- Top Quick Social Icons Bar -->
+          <div class="flex items-center justify-center gap-2 mt-3">
+            ${renderSocialIconsHtml(activeSystem.social_links, theme)}
+          </div>
+        </div>
+        ${headerLayout === 'portrait' ? '</div>' : ''}
+
+        <!-- Links & Lists Section -->
+        <div class="px-3.5 space-y-3 mt-4">
+      `;
+
+      // Render Categorized Lists & Standalone links
+      const validListIds = new Set((systemLists || []).map(l => String(l.id)));
+      let renderedLinksCount = 0;
+
+      if (systemLists && systemLists.length) {
+        systemLists.forEach(list => {
+          const linksInList = (systemLinks || []).filter(l => l.list_id && String(l.list_id) === String(list.id));
+          if (linksInList.length) {
+            renderedLinksCount += linksInList.length;
+            html += `
+              <div class="space-y-2 mt-3">
+                <p class="text-[10px] font-bold px-1 flex items-center gap-1.5" style="color: ${list.color || themeColor}">
+                  <i class="fa-solid fa-${list.icon || 'folder'}"></i> ${Taqeemk.Security.escapeHTML(list.title)}
+                </p>
+                ${linksInList.map(l => renderPreviewLinkButton(l, themeColor, btnStyleClass, theme)).join('')}
+              </div>
+            `;
+          }
+        });
+      }
+
+      // Standalone Links
+      const standalone = (systemLinks || []).filter(l => !l.list_id || !validListIds.has(String(l.list_id)));
+      if (standalone.length) {
+        renderedLinksCount += standalone.length;
+        html += `
+          <div class="space-y-2 mt-3">
+            ${standalone.map(l => renderPreviewLinkButton(l, themeColor, btnStyleClass, theme)).join('')}
+          </div>
+        `;
+      }
+
+      // If no links exist yet in this system, render preview buttons so the section is NEVER empty!
+      if (renderedLinksCount === 0) {
+        const demoLinks = [
+          { id: 'demo-1', title: 'رابط الموقع الرسمي', url: '#', icon: 'globe' },
+          { id: 'demo-2', title: 'قائمة الخدمات والأسعار', url: '#', icon: 'briefcase' },
+          { id: 'demo-3', title: 'تواصل معنا مباشرة عبر واتساب', url: '#', icon: 'whatsapp' }
+        ];
+        html += `
+          <div class="space-y-2 mt-3">
+            <div class="flex items-center justify-between px-1">
+              <span class="text-[10px] font-bold opacity-75" style="color: ${theme.mutedText};">أزرار الروابط (معاينة حية):</span>
+            </div>
+            ${demoLinks.map(l => renderPreviewLinkButton(l, themeColor, btnStyleClass, theme)).join('')}
+          </div>
+        `;
+      }
+
+      html += `
+        </div>
+        <div class="text-center pt-6 pb-2">
+          <p class="text-[9px] font-bold opacity-60" style="color: ${theme.mutedText};">بواسطة تقييمك | Taqeemk</p>
+        </div>
+      `;
+
+      container.innerHTML = html;
+    }
+
+    function renderSocialIconsHtml(socials = {}, theme = null) {
+      const items = [
+        { key: 'whatsapp', svgKey: 'whatsapp', color: '#25d366' },
+        { key: 'instagram', svgKey: 'instagram', color: '#e1306c' },
+        { key: 'tiktok', svgKey: 'tiktok', color: '#00f2fe' },
+        { key: 'telegram', svgKey: 'telegram', color: '#229ed9' },
+        { key: 'facebook', svgKey: 'facebook', color: '#1877f2' },
+        { key: 'youtube', svgKey: 'youtube', color: '#ff0000' },
+        { key: 'linkedin', svgKey: 'linkedin', color: '#0A66C2' }
+      ];
+
+      const currentTheme = theme || (window.getTaqeemkTheme ? window.getTaqeemkTheme(activeSystem?.theme) : window.THEMES?.aurora);
+      const cardBg = currentTheme ? currentTheme.cardBg : 'rgba(30, 41, 59, 0.8)';
+      const cardBorder = currentTheme ? currentTheme.cardBorder : 'rgba(255, 255, 255, 0.1)';
+
+      return items
+        .filter(item => socials && socials[item.key])
+        .map(item => `
+          <a href="${socials[item.key]}" target="_blank" 
+             class="w-7 h-7 rounded-full flex items-center justify-center text-xs transition-transform hover:scale-110 shadow p-1.5" 
+             style="background: ${cardBg}; border: 1px solid ${cardBorder}; color: ${item.color};">
+            ${Taqeemk.Icons.getSvg(item.svgKey)}
+          </a>
+        `).join('');
+    }
+
+    function renderPreviewLinkButton(link, themeColor, btnStyleClass, theme = null) {
+      const currentTheme = theme || (window.getTaqeemkTheme ? window.getTaqeemkTheme(activeSystem?.theme) : window.THEMES?.aurora);
+      const iconBadge = Taqeemk.Icons.renderBadge(link.icon || 'link', 'w-7 h-7');
+      const isBorder = btnStyleClass === 'border-2';
+      const isPill = btnStyleClass === 'rounded-full';
+      const isGlass = btnStyleClass === 'glass-card';
+      const radiusClass = isPill ? 'rounded-full' : (btnStyleClass === 'rounded-xl' ? 'rounded-xl' : btnStyleClass);
+
+      let customStyle = '';
+      if (isBorder) {
+        customStyle = `border: 2px solid ${themeColor || currentTheme.accent}; background: transparent; color: ${currentTheme.textColor};`;
+      } else if (isGlass) {
+        customStyle = `background: ${currentTheme.cardBg}; border: 1px solid ${currentTheme.cardBorder}; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: ${currentTheme.buttonText};`;
+      } else {
+        customStyle = `background: ${currentTheme.buttonBg}; border: 1px solid ${currentTheme.buttonBorder}; color: ${currentTheme.buttonText};`;
+      }
+
+      return `
+        <a href="${link.url || '#'}" ${link.url && link.url !== '#' ? 'target="_blank"' : 'onclick="return false;"'} 
+           class="block w-full ${radiusClass} p-2.5 flex items-center justify-between transition-all group shadow-sm hover:scale-[1.02]" 
+           style="${customStyle}">
+          <div class="flex items-center gap-2.5 overflow-hidden">
+            ${iconBadge}
+            <span class="text-xs font-bold transition-colors truncate max-w-[170px]" style="color: inherit;">
+              ${Taqeemk.Security.escapeHTML(link.title)}
+            </span>
+          </div>
+          <i class="fa-solid fa-arrow-left text-[9px] opacity-60 group-hover:opacity-100 transition-opacity" style="color: inherit;"></i>
+        </a>
+      `;
+    }
+
+    // ---------------- TAB CONTROLS ----------------
+    function switchTab(tabName) {
+      ['links', 'appearance', 'analytics', 'qr', 'subscription'].forEach(t => {
+        const p = document.getElementById(`panel-${t}`);
+        const b = document.getElementById(`tab-btn-${t}`);
+        if (t === tabName) {
+          p.classList.remove('hidden');
+          b.className = 'tab-btn active px-3.5 py-2 text-xs font-bold rounded-xl flex items-center gap-2 transition-all bg-indigo-600 text-white shadow-md';
+          if (tabName === 'qr') {
+            renderActiveSystemQR();
+          }
+        } else {
+          p.classList.add('hidden');
+          b.className = 'tab-btn px-3.5 py-2 text-xs font-bold rounded-xl flex items-center gap-2 transition-all text-slate-400 hover:text-white bg-slate-800/40';
+        }
+      });
+    }
+
+    // ---------------- LINKS & LISTS CRUD ----------------
+    function populateListSelects() {
+      const select = document.getElementById('link-list-select');
+      select.innerHTML = '<option value="">-- بدون قائمة (رابط منفرد) --</option>' +
+        systemLists.map(l => `<option value="${l.id}">${l.title}</option>`).join('');
+    }
+
+    function renderLinks() {
+      const container = document.getElementById('links-list-container');
+      if (!systemLinks.length) {
+        container.innerHTML = `
+          <div class="glass-card rounded-2xl p-6 text-center border-dashed border-slate-800">
+            <i class="fa-solid fa-link-slash text-2xl text-slate-600 mb-2"></i>
+            <p class="text-xs font-bold text-slate-300">لا توجد روابط في هذا الملف بعد</p>
+            <button onclick="openCreateLinkModal()" class="btn-primary text-xs px-3.5 py-1.5 mt-3">
+              <i class="fa-solid fa-plus ml-1"></i> أضف أول رابط
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = systemLinks.map(link => {
+        const parentList = systemLists.find(l => l.id === link.list_id);
+        const iconBadge = Taqeemk.Icons.renderBadge(link.icon || 'link', 'w-8 h-8');
+
+        return `
+          <div class="glass-card rounded-xl p-3 flex items-center justify-between gap-3 border border-slate-800">
+            <div class="flex items-center gap-3">
+              ${iconBadge}
+              <div>
+                <h4 class="text-xs font-bold text-white">${link.title}</h4>
+                <a href="${link.url}" target="_blank" dir="ltr" class="text-[11px] text-cyan-400 hover:underline">
+                  ${link.url.substring(0, 32)}...
+                </a>
+                <div class="flex items-center gap-2 mt-1 text-[10px] text-slate-400">
+                  <span><i class="fa-solid fa-chart-simple text-indigo-400 ml-0.5"></i> ${link.click_count || 0} نقرة</span>
+                  ${parentList ? `<span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300"><i class="fa-solid fa-folder text-cyan-400 ml-0.5"></i> ${parentList.title}</span>` : ''}
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-1.5">
+              <button onclick="deleteLinkItem('${link.id}')" class="text-slate-400 hover:text-red-400 p-1.5 text-xs" title="حذف">
+                <i class="fa-regular fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openCreateLinkModal() {
+      if (!activeSystem || !activeSystem.id) {
+        Taqeemk.UI.showToast('يرجى اختيار أو إنشاء ملف نشط أولاً قبل إضافة الروابط.', 'warning');
+        return;
+      }
+      selectLinkType('instagram');
+      document.getElementById('link-modal').classList.remove('hidden');
+    }
+
+    function closeLinkModal() {
+      document.getElementById('link-modal').classList.add('hidden');
+    }
+
+    async function handleLinkSubmit(e) {
+      e.preventDefault();
+      if (!activeSystem || !activeSystem.id) {
+        Taqeemk.UI.showToast('تعذر إضافة الرابط: لم يتم تحديد أي ملف نشط.', 'error');
+        return;
+      }
+      const title = document.getElementById('link-title').value;
+      const url = document.getElementById('link-url').value;
+      const listId = document.getElementById('link-list-select').value || null;
+      const icon = document.getElementById('link-icon-type').value || selectedLinkType || 'link';
+
+      try {
+        await Taqeemk.API.createLink(currentUser.id, { title, url, list_id: listId, icon }, activeSystem.id);
+        closeLinkModal();
+        Taqeemk.UI.showToast('تمت إضافة الرابط بنجاح!');
+        systemLinks = await Taqeemk.API.getLinks(currentUser.id, activeSystem.id);
+        renderLinks();
+        refreshAnalytics();
+        refreshPhonePreview();
+      } catch (err) {
+        console.error('Error in handleLinkSubmit:', err);
+        Taqeemk.UI.showToast(err.message || 'خطأ في إضافة الرابط', 'error');
+      }
+    }
+
+    async function deleteLinkItem(linkId) {
+      if (!activeSystem || !activeSystem.id) return;
+      try {
+        await Taqeemk.API.deleteLink(linkId);
+        systemLinks = await Taqeemk.API.getLinks(currentUser.id, activeSystem.id);
+        renderLinks();
+        refreshAnalytics();
+        refreshPhonePreview();
+        Taqeemk.UI.showToast('تم حذف الرابط.');
+      } catch (err) {
+        console.error('Error deleting link:', err);
+        Taqeemk.UI.showToast(err.message || 'حدث خطأ في حذف الرابط', 'error');
+      }
+    }
+
+    // Lists
+    function openCreateListModal() {
+      if (!activeSystem || !activeSystem.id) {
+        Taqeemk.UI.showToast('يرجى اختيار أو إنشاء ملف نشط أولاً قبل إنشاء القوائم.', 'warning');
+        return;
+      }
+      document.getElementById('list-title').value = '';
+      document.getElementById('list-desc').value = '';
+      document.getElementById('list-modal').classList.remove('hidden');
+    }
+
+    function closeListModal() {
+      document.getElementById('list-modal').classList.add('hidden');
+    }
+
+    async function handleListSubmit(e) {
+      e.preventDefault();
+      if (!activeSystem || !activeSystem.id) {
+        Taqeemk.UI.showToast('تعذر إنشاء القائمة: لم يتم تحديد أي ملف نشط.', 'error');
+        return;
+      }
+      const title = document.getElementById('list-title').value;
+      const desc = document.getElementById('list-desc').value;
+      const icon = document.getElementById('list-icon').value;
+
+      try {
+        await Taqeemk.API.createList(currentUser.id, { title, description: desc, icon }, activeSystem.id);
+        closeListModal();
+        Taqeemk.UI.showToast('تم إنشاء القائمة بنجاح!');
+        systemLists = await Taqeemk.API.getLists(currentUser.id, activeSystem.id);
+        populateListSelects();
+        refreshPhonePreview();
+      } catch (err) {
+        console.error('Error in handleListSubmit:', err);
+        Taqeemk.UI.showToast(err.message || 'حدث خطأ في إنشاء القائمة', 'error');
+      }
+    }
+
+    // ---------------- QR CODES CRUD ----------------
+    function renderQRCodes() {
+      const container = document.getElementById('qr-codes-container');
+      if (!systemQRs.length) {
+        container.innerHTML = `
+          <div class="col-span-full glass-card rounded-2xl p-6 text-center border-dashed border-slate-800">
+            <i class="fa-solid fa-qrcode text-2xl text-slate-600 mb-2"></i>
+            <p class="text-xs font-bold text-slate-300">لا توجد أكواد QR في هذا الملف بعد</p>
+            <button onclick="openCreateQRModal()" class="btn-primary text-xs px-3.5 py-1.5 mt-3">
+              <i class="fa-solid fa-plus ml-1"></i> توليد كود QR
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = systemQRs.map(qr => {
+        return `
+          <div class="glass-card rounded-xl p-4 border border-slate-800 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="px-2 py-0.5 rounded text-[9px] font-bold ${qr.type === 'dynamic' ? 'badge-dynamic' : 'badge-static'}">
+                  ${qr.type === 'dynamic' ? 'كود ديناميكي' : 'كود ثابت'}
+                </span>
+                <button onclick="deleteQRItem('${qr.id}')" class="text-slate-500 hover:text-red-400 text-xs">
+                  <i class="fa-regular fa-trash-can"></i>
+                </button>
+              </div>
+
+              <h4 class="text-xs font-bold text-white mb-2">${qr.title}</h4>
+
+              <div class="flex items-center justify-center p-2.5 bg-white rounded-lg my-2 shadow">
+                <div id="qr-box-${qr.id}" class="w-28 h-28 flex items-center justify-center"></div>
+              </div>
+
+              <p class="text-[10px] text-slate-400 truncate font-mono" dir="ltr">${qr.target_url}</p>
+              <p class="text-[10px] text-emerald-400 mt-1"><i class="fa-solid fa-chart-line ml-1"></i> مسح ${qr.scan_count || 0} مرة</p>
+            </div>
+
+            <div class="flex items-center gap-2 pt-2 mt-2 border-t border-slate-800">
+              <button onclick="downloadQRCard('${qr.id}', '${qr.title}')" class="btn-secondary text-[10px] flex-1 py-1">
+                <i class="fa-solid fa-download ml-1 text-cyan-400"></i> تحميل
+              </button>
+              ${qr.type === 'dynamic' ? `
+                <button onclick="editDynamicDestination('${qr.id}', '${qr.target_url}')" class="btn-secondary text-[10px] px-2 py-1 text-indigo-400" title="تعديل الرابط">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      systemQRs.forEach(qr => {
+        const val = qr.type === 'dynamic'
+          ? `${window.TAQEEMK_CONFIG.REDIRECT_BASE_URL}?c=${qr.short_slug}`
+          : normalizeUrl(qr.target_url);
+
+        Taqeemk.QREngine.render(`qr-box-${qr.id}`, val, {
+          fg_color: qr.fg_color || '#000000',
+          bg_color: '#ffffff',
+          size: 140,
+          margin: 10
+        });
+      });
+    }
+
+    function openCreateQRModal() {
+      if (!activeSystem || !activeSystem.id) {
+        Taqeemk.UI.showToast('يرجى اختيار أو إنشاء ملف نشط أولاً قبل توليد كود QR.', 'warning');
+        return;
+      }
+      document.getElementById('qr-title').value = '';
+      const slugVal = activeSystem.slug || '';
+      document.getElementById('qr-target-url').value = getSystemBioUrl(slugVal);
+      document.getElementById('qr-modal').classList.remove('hidden');
+    }
+
+    function closeQRModal() {
+      document.getElementById('qr-modal').classList.add('hidden');
+    }
+
+    async function handleQRSubmit(e) {
+      e.preventDefault();
+      if (!activeSystem || !activeSystem.id) {
+        Taqeemk.UI.showToast('تعذر إنشاء الكود: لم يتم تحديد أي ملف نشط.', 'error');
+        return;
+      }
+      const type = document.querySelector('input[name="qr-type-radio"]:checked').value;
+      const title = document.getElementById('qr-title').value;
+      const rawTargetUrl = document.getElementById('qr-target-url').value;
+      const targetUrl = normalizeUrl(rawTargetUrl);
+      const fgColor = document.getElementById('qr-fg-color').value;
+      const bgColor = document.getElementById('qr-bg-color').value;
+
+      try {
+        await Taqeemk.API.createQRCode(currentUser.id, {
+          type,
+          title,
+          target_url: targetUrl,
+          fg_color: fgColor,
+          bg_color: bgColor
+        }, activeSystem.id);
+
+        closeQRModal();
+        Taqeemk.UI.celebrate();
+        Taqeemk.UI.showToast('تم إنشاء كود QR بنجاح!');
+        systemQRs = await Taqeemk.API.getQRCodes(currentUser.id, activeSystem.id);
+        renderQRCodes();
+        refreshAnalytics();
+      } catch (err) {
+        console.error('Error creating QR code:', err);
+        Taqeemk.UI.showToast(err.message || 'حدث خطأ في إنشاء الكود', 'error');
+      }
+    }
+
+    async function deleteQRItem(qrId) {
+      if (!activeSystem || !activeSystem.id) return;
+      try {
+        await Taqeemk.API.deleteQRCode(qrId);
+        systemQRs = await Taqeemk.API.getQRCodes(currentUser.id, activeSystem.id);
+        renderQRCodes();
+        refreshAnalytics();
+        Taqeemk.UI.showToast('تم حذف الكود.');
+      } catch (err) {
+        console.error('Error deleting QR code:', err);
+        Taqeemk.UI.showToast(err.message || 'حدث خطأ في حذف الكود', 'error');
+      }
+    }
+
+    async function editDynamicDestination(qrId, currentUrl) {
+      if (!activeSystem || !activeSystem.id) return;
+      const { value: newUrl } = await Swal.fire({
+        title: 'تعديل وجهة كود QR الديناميكي',
+        input: 'text',
+        inputValue: currentUrl,
+        inputAttributes: {
+          inputmode: 'url'
+        },
+        showCancelButton: true,
+        confirmButtonText: 'تحديث',
+        cancelButtonText: 'إلغاء',
+        background: '#1e293b',
+        color: '#f8fafc'
+      });
+
+      if (newUrl && newUrl.trim() !== currentUrl) {
+        const normalized = normalizeUrl(newUrl);
+        try {
+          await Taqeemk.API.updateQRCode(qrId, { target_url: normalized });
+          Taqeemk.UI.showToast('تم تحديث وجهة الكود بنجاح!');
+          systemQRs = await Taqeemk.API.getQRCodes(currentUser.id, activeSystem.id);
+          renderQRCodes();
+        } catch (err) {
+          console.error('Error updating dynamic QR destination:', err);
+          Taqeemk.UI.showToast(err.message || 'حدث خطأ في التحديث', 'error');
+        }
+      }
+    }
+
+    function downloadQRCard(qrId, title) {
+      const qrItem = systemQRs.find(q => q.id === qrId);
+      const val = qrItem
+        ? (qrItem.type === 'dynamic' ? `${window.TAQEEMK_CONFIG.REDIRECT_BASE_URL}?c=${qrItem.short_slug}` : normalizeUrl(qrItem.target_url))
+        : '';
+      Taqeemk.QREngine.downloadPNG(val || `qr-box-${qrId}`, `taqeemk-${title}.png`, 1024);
+    }
+
+    // ---------------- ANALYTICS REFRESH ----------------
+    function refreshAnalytics() {
+      const totalViews = activeSystem?.view_count || 0;
+      const totalClicks = systemLinks.reduce((acc, l) => acc + (l.click_count || 0), 0);
+      const totalScans = systemQRs.reduce((acc, q) => acc + (q.scan_count || 0), 0);
+      const ctr = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : '0';
+
+      document.getElementById('analytics-views').textContent = totalViews;
+      document.getElementById('analytics-clicks').textContent = totalClicks;
+      document.getElementById('analytics-scans').textContent = totalScans;
+      document.getElementById('analytics-ctr').textContent = `${ctr}%`;
+
+      const topContainer = document.getElementById('analytics-top-links');
+      if (!systemLinks.length) {
+        topContainer.innerHTML = '<p class="text-[11px] text-slate-500">لا توجد بيانات نقرات بعد.</p>';
+        return;
+      }
+
+      const sorted = [...systemLinks].sort((a, b) => (b.click_count || 0) - (a.click_count || 0));
+      topContainer.innerHTML = sorted.map(l => {
+        const badge = Taqeemk.Icons.renderBadge(l.icon || 'link', 'w-5 h-5');
+        return `
+          <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800 text-xs">
+            <div class="flex items-center gap-2 truncate max-w-[200px]">
+              ${badge}
+              <span class="text-white truncate">${l.title}</span>
+            </div>
+            <span class="text-cyan-400 font-bold font-mono">${l.click_count || 0} نقرة</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ---------------- ACTIVATION & PAYMENT GATE ----------------
+    async function checkActivationStatus() {
+      const banner = document.getElementById('activation-banner');
+      const statusBadge = document.getElementById('subscription-status-badge');
+      if (banner) banner.classList.add('hidden');
+      if (statusBadge) {
+        statusBadge.innerHTML = `<span class="px-2.5 py-1 rounded-full badge-active text-xs font-bold"><i class="fa-solid fa-circle-check ml-1"></i> مفعل نشط</span>`;
+      }
+    }
+
+    async function handleReceiptSubmit(e) {
+      e.preventDefault();
+      const fileInput = document.getElementById('receipt-file-input');
+      const phone = document.getElementById('receipt-sender-phone').value;
+      const btn = document.getElementById('submit-receipt-btn');
+
+      if (!fileInput.files || !fileInput.files[0]) {
+        Taqeemk.UI.showToast('يرجى اختيار صورة الوصل أولاً', 'warning');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'جاري الإرسال...';
+
+      try {
+        const userId = currentUser?.id || currentProfile?.id;
+        const userEmail = currentUser?.email || currentProfile?.email;
+        const url = await Taqeemk.API.uploadReceiptImage(fileInput.files[0]);
+        await Taqeemk.API.submitPaymentReceipt(userId, userEmail, phone, '', url);
+        Taqeemk.UI.celebrate();
+        Taqeemk.UI.showToast('تم إرسال الوصل للمراجعة بنجاح!');
+        await checkActivationStatus();
+      } catch (err) {
+        console.error('Error submitting receipt:', err);
+        Taqeemk.UI.showToast('فشل إرسال إشعار التحويل', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'إرسال إشعار التحويل للمراجعة';
+      }
+    }
+
+    // Helpers
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        Taqeemk.UI.showToast('تم النسخ للحافظة!');
+      });
+    }
+
+    // Active System QR Rendering and Actions
+
+    function renderActiveSystemQR() {
+      const username = (activeSystem?.slug || currentProfile?.username || '').trim();
+      const emptyState = document.getElementById('active-qr-empty-state');
+      const content = document.getElementById('active-qr-content');
+      const badge = document.getElementById('active-system-qr-badge');
+      const urlInput = document.getElementById('active-system-qr-url-input');
+
+      if (!username) {
+        if (emptyState) emptyState.classList.remove('hidden');
+        if (content) content.classList.add('hidden');
+        if (badge) badge.innerHTML = '';
+        return;
+      }
+
+      if (emptyState) emptyState.classList.add('hidden');
+      if (content) content.classList.remove('hidden');
+
+      const fullUrl = getSystemBioUrl(username);
+      if (urlInput) urlInput.value = fullUrl;
+
+      if (badge) {
+        badge.innerHTML = `
+          <span class="px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-mono font-bold border border-indigo-500/30">
+            @${username}
+          </span>
+        `;
+      }
+
+      Taqeemk.QREngine.render('active-system-qr-container', fullUrl, {
+        fg_color: '#000000',
+        bg_color: '#ffffff',
+        size: 256,
+        margin: 16,
+        high_compatibility: true
+      });
+    }
+
+    function copyActiveSystemBioUrl() {
+      const username = (activeSystem?.slug || currentProfile?.username || '').trim();
+      if (!username) {
+        Taqeemk.UI.showToast('اسم المستخدم غير محدد بعد.', 'warning');
+        return;
+      }
+      const fullUrl = getSystemBioUrl(username);
+      navigator.clipboard.writeText(fullUrl).then(() => {
+        Taqeemk.UI.showToast('تم نسخ رابط الصفحة بنجاح!');
+      });
+    }
+
+    function openActiveSystemBioUrl() {
+      const username = (activeSystem?.slug || currentProfile?.username || '').trim();
+      if (!username) {
+        Taqeemk.UI.showToast('اسم المستخدم غير محدد بعد.', 'warning');
+        return;
+      }
+      const fullUrl = getSystemBioUrl(username);
+      window.open(fullUrl, '_blank');
+    }
+
+    function downloadActiveSystemQRPNG() {
+      const username = (activeSystem?.slug || currentProfile?.username || 'taqeemk').trim();
+      const fullUrl = getSystemBioUrl(username);
+      if (!fullUrl) {
+        Taqeemk.UI.showToast('تعذر التنزيل: لم يتم تحديد الملف بعد.', 'error');
+        return;
+      }
+      const filename = `taqeemk-${username}.png`;
+      Taqeemk.QREngine.downloadPNG(fullUrl, filename, 1024);
+      Taqeemk.UI.showToast('جاري تصدير صورة الـ QR عالية الدقة (1024×1024)...');
+    }
+
+    function downloadActiveSystemQRSVG() {
+      const username = (activeSystem?.slug || currentProfile?.username || 'taqeemk').trim();
+      const fullUrl = getSystemBioUrl(username);
+      if (!fullUrl) {
+        Taqeemk.UI.showToast('تعذر التنزيل: لم يتم تحديد الملف بعد.', 'error');
+        return;
+      }
+      const filename = `taqeemk-${username}.svg`;
+      Taqeemk.QREngine.downloadSVG(fullUrl, filename, 1024);
+      Taqeemk.UI.showToast('جاري تصدير كود الـ QR بصيغة SVG...');
+    }
+
+    function copyActiveSystemLink() {
+      copyActiveSystemBioUrl();
+    }
+
+    async function handleLogout() {
+      await Taqeemk.API.signOut();
+    }
+  </script>
+
+</body>
+
+</html>

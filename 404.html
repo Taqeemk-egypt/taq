@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>404 - الصفحة غير موجودة | تقييمك</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- App Custom Styles -->
+  <link rel="stylesheet" href="style.css">
+
+</head>
+<body class="bg-[#090d16] text-slate-100 min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+
+  <!-- Ambient Glowing Orbs -->
+  <div class="fixed -top-20 -right-20 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
+  <div class="fixed -bottom-20 -left-20 w-96 h-96 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+  <div class="glass-panel max-w-lg w-full rounded-3xl p-8 sm:p-12 text-center border border-slate-800 shadow-2xl space-y-8 relative z-10">
+    
+    <!-- Big 404 with Floating QR Box -->
+    <div class="relative inline-block">
+      <span class="text-8xl sm:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-b from-indigo-400 via-indigo-600 to-slate-900 select-none tracking-wider">
+        404
+      </span>
+
+      <!-- Floating Animated QR Badge -->
+      <div class="absolute -top-3 -right-3 w-14 h-14 bg-white rounded-2xl p-1.5 shadow-2xl transform rotate-12 animate-float flex items-center justify-center border border-slate-200">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://taqeemk.com&color=0f172a" alt="404 QR" class="w-full h-full">
+      </div>
+    </div>
+
+    <!-- Error Description -->
+    <div class="space-y-2">
+      <h1 class="text-2xl sm:text-3xl font-black text-white">عفواً، هذه الصفحة ضلت طريقها!</h1>
+      <p class="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-sm mx-auto">
+        يبدو أن الرابط الذي تحاول الوصول إليه غير موجود أو تم تغييره أو انتهت صلاحيته في منصة تقييمك.
+      </p>
+    </div>
+
+    <!-- Quick Navigation Actions -->
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+      <a href="index.html" class="btn-primary w-full sm:w-auto text-xs px-6 py-3">
+        <i class="fa-solid fa-house ml-1.5"></i> الصفحة الرئيسية
+      </a>
+      <a href="dashboard.html" class="btn-secondary w-full sm:w-auto text-xs px-6 py-3">
+        <i class="fa-solid fa-gauge-high ml-1.5 text-cyan-400"></i> لوحة التحكم
+      </a>
+      <a href="p.html?u=taqeemk_demo" class="btn-secondary w-full sm:w-auto text-xs px-5 py-3">
+        <i class="fa-solid fa-eye ml-1.5 text-indigo-400"></i> تجربة بايو تجريبي
+      </a>
+    </div>
+
+    <div class="border-t border-slate-800/80 pt-6">
+      <p class="text-[11px] text-slate-500">
+        تقييمك | Taqeemk - منصة الروابط الذكية وأكواد QR الديناميكية &copy; 2026
+      </p>
+    </div>
+
+  </div>
+
+</body>
+</html>

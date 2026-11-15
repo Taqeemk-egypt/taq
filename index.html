@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>تقييمك | Taqeemk - منصة الروابط وأكواد QR الذكية والقوائم المنظمة</title>
+  <meta name="description" content="أنشئ صفحة بايو احترافية تجمع كل روابطك ومشاريعك في مكان واحد، مع أكواد QR ديناميكية قابلة للتعديل بعد الطباعة.">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              DEFAULT: '#6366f1',
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+            dark: {
+              DEFAULT: '#090d16',
+              card: 'rgba(17, 24, 39, 0.75)',
+              border: 'rgba(255, 255, 255, 0.08)'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts & Font Awesome 6 Icons (All Free & Brands CDN) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <!-- QR Code Styling & Fallback Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+  <!-- App Custom Styles -->
+  <link rel="stylesheet" href="style.css">
+
+</head>
+<body class="bg-[#090d16] text-slate-100 min-h-screen relative overflow-x-hidden">
+
+  <!-- Glow Background Accents -->
+  <div class="fixed top-0 right-1/4 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none"></div>
+  <div class="fixed top-1/3 left-10 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+  <!-- ==============================================================================
+       NAVBAR
+       ============================================================================== -->
+  <nav class="fixed top-0 left-0 right-0 z-50 glass-nav transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 sm:h-20">
+        
+        <!-- Brand Logo -->
+        <a href="index.html" class="flex items-center gap-2 sm:gap-3 group shrink-0">
+          <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-indigo-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform shrink-0">
+            <i class="fa-solid fa-qrcode text-white text-base sm:text-xl"></i>
+          </div>
+          <div>
+            <span class="text-lg sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
+              تقييمك <span class="hidden sm:inline-flex text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 font-bold border border-indigo-500/30">Taqeemk</span>
+            </span>
+            <p class="hidden sm:block text-[10px] text-slate-400 -mt-1 font-medium">الروابط الذكية وأكواد QR</p>
+          </div>
+        </a>
+
+        <!-- Desktop Navigation Links -->
+        <div class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+          <a href="#features" class="hover:text-indigo-400 transition-colors">المميزات</a>
+          <a href="#qr-demo" class="hover:text-indigo-400 transition-colors">مولد QR المباشر</a>
+          <a href="#faq" class="hover:text-indigo-400 transition-colors">الأسئلة الشائعة</a>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-1.5 sm:gap-3 shrink-0" id="nav-actions">
+          <button onclick="openAuthModal()" class="text-xs sm:text-sm font-medium text-slate-300 hover:text-white px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-colors whitespace-nowrap">
+            تسجيل الدخول
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </nav>
+
+  <!-- ==============================================================================
+       HERO SECTION
+       ============================================================================== -->
+  <section class="pt-36 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      
+      <!-- Right Column: Content & Pitch -->
+      <div class="lg:col-span-7 space-y-6 text-center lg:text-right">
+        
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-semibold">
+          <span class="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          الجيل الجديد من صفحات البايو وأكواد QR الديناميكية
+        </div>
+
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-[1.2] tracking-tight">
+          منصة <span class="text-gradient">تقييمك</span> تجمع كل روابطك ومشاريعك في صفحة واحدة، مع <span class="text-gradient">QR ذكي</span>.
+        </h1>
+
+        <p class="text-lg text-slate-300 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+          منصة تقييمك تتيح لك إنشاء صفحة بايو ذكية تجمع كل روابطك ومشاريعك، مع أكواد QR ديناميكية قابلة للتعديل بعد الطباعة، وتخصيص كامل للهوية والتصميم.
+        </p>
+
+        <!-- CTA Action Buttons -->
+        <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+          <a href="#qr-demo" class="btn-secondary w-full sm:w-auto text-base px-6 py-3.5">
+            <i class="fa-solid fa-wand-magic-sparkles ml-2 text-cyan-400"></i>
+            جرّب مولد الـ QR مجاناً
+          </a>
+        </div>
+
+      </div>
+
+      <!-- Left Column: Visual Phone & QR Showcase -->
+      <div class="lg:col-span-5 flex justify-center relative">
+        <div class="relative group">
+          
+          <div class="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-[50px] blur-xl opacity-30 group-hover:opacity-60 transition duration-1000"></div>
+
+          <!-- Realistic Phone Mockup -->
+          <div class="phone-mockup-frame">
+            <div class="phone-dynamic-island"></div>
+            
+            <div class="phone-screen-content">
+              
+              <!-- Cover Banner Mock -->
+              <div class="phone-cover-banner" style="background-image: url('https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=600&q=80');">
+                <div class="phone-cover-overlay"></div>
+              </div>
+
+              <!-- Profile Header Mock -->
+              <div class="text-center px-4 relative z-10">
+                <div class="phone-avatar-overlap w-16 h-16 mx-auto rounded-full ring-2 ring-indigo-500 p-0.5 shadow-lg relative">
+                  <img src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=150&q=80" alt="Avatar" class="w-full h-full object-cover rounded-full">
+                  <span class="absolute bottom-0 left-0 bg-indigo-600 text-white rounded-full p-1 text-[8px]">
+                    <i class="fa-solid fa-check"></i>
+                  </span>
+                </div>
+                <h4 class="text-sm font-bold text-white mt-1.5 flex items-center justify-center gap-1">
+                  قهوة الحارة <i class="fa-solid fa-certificate text-cyan-400 text-xs"></i>
+                </h4>
+                <p class="text-[10px] text-slate-400 font-mono">@qahwet-ehlara</p>
+                <p class="text-[10px] text-slate-300 mt-1">أجواء شرقية مع أفضل أنواع القهوة المختصة ☕</p>
+                
+                <!-- Social Bar Mock -->
+                <div class="flex items-center justify-center gap-2 mt-2">
+                  <span class="w-6 h-6 rounded-full bg-slate-800 text-emerald-400 flex items-center justify-center text-[10px]"><i class="fa-brands fa-whatsapp"></i></span>
+                  <span class="w-6 h-6 rounded-full bg-slate-800 text-rose-400 flex items-center justify-center text-[10px]"><i class="fa-brands fa-instagram"></i></span>
+                  <span class="w-6 h-6 rounded-full bg-slate-800 text-cyan-400 flex items-center justify-center text-[10px]"><i class="fa-brands fa-tiktok"></i></span>
+                </div>
+              </div>
+
+              <!-- QR Quick Card -->
+              <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-2.5 text-center mx-3 my-3">
+                <div class="w-20 h-20 mx-auto bg-white rounded-xl p-1 shadow-md flex items-center justify-center qr-scanner-box">
+                  <div class="qr-scanner-line"></div>
+                  <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://taqeemk.com/p.html?u=qahwet-ehlara&color=78350f" alt="QR Demo" class="w-full h-full">
+                </div>
+                <p class="text-[9px] text-indigo-300 font-semibold mt-1">كود QR منيو قهوة الحارة</p>
+              </div>
+
+              <!-- Structured Lists Sample -->
+              <div class="space-y-2 px-3 pb-3">
+                <p class="text-[10px] text-amber-400 font-bold px-1 flex items-center gap-1">
+                  <i class="fa-solid fa-mug-hot"></i> قائمة المشروبات
+                </p>
+
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-xl p-2 flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs">
+                      <i class="fa-solid fa-mug-hot"></i>
+                    </div>
+                    <span class="text-[11px] font-medium text-white">منيو القهوة الكامل</span>
+                  </div>
+                  <i class="fa-solid fa-arrow-left text-[9px] text-slate-400"></i>
+                </div>
+
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-xl p-2 flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs">
+                      <i class="fa-brands fa-whatsapp"></i>
+                    </div>
+                    <span class="text-[11px] font-medium text-white">حجز طاولة وطلب دليفري</span>
+                  </div>
+                  <i class="fa-solid fa-arrow-left text-[9px] text-slate-400"></i>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+
+  <!-- ==============================================================================
+       INTERACTIVE LIVE QR STUDIO DEMO
+       ============================================================================== -->
+  <section id="qr-demo" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div class="text-center max-w-3xl mx-auto mb-12">
+      <h2 class="text-3xl font-black text-white">مولد أكواد QR التفاعلي المباشر</h2>
+      <p class="text-slate-400 mt-2 text-sm sm:text-base">جرّب تخصيص وتوليد كود QR عالي الدقة الآن مجاناً قبل التسجيل</p>
+    </div>
+
+    <div class="glass-panel rounded-3xl p-6 sm:p-10 max-w-4xl mx-auto shadow-2xl">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+        
+        <!-- Controls Column -->
+        <div class="md:col-span-7 space-y-5">
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-2">رابط الوجهة أو النص:</label>
+            <div class="relative">
+              <input type="text" id="demo-qr-input" value="https://taqeemk.com" placeholder="https://example.com" class="w-full glass-input rounded-xl px-4 py-3 text-sm pr-10">
+              <i class="fa-solid fa-link absolute right-3.5 top-3.5 text-slate-400 text-sm"></i>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-300 mb-2">لون الكود (Foreground):</label>
+              <div class="flex items-center gap-3 glass-input rounded-xl p-2">
+                <input type="color" id="demo-qr-fg" value="#6366f1" class="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0">
+                <span id="demo-fg-hex" class="text-xs font-mono text-slate-300">#6366f1</span>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-300 mb-2">لون الخلفية (Background):</label>
+              <div class="flex items-center gap-3 glass-input rounded-xl p-2">
+                <input type="color" id="demo-qr-bg" value="#ffffff" class="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0">
+                <span id="demo-bg-hex" class="text-xs font-mono text-slate-300">#ffffff</span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-2">شكل الزوايا والنقاط:</label>
+            <select id="demo-qr-style" class="w-full glass-input rounded-xl px-4 py-3 text-sm">
+              <option value="extra-rounded">دائري فائق الأناقة (Extra-Rounded)</option>
+              <option value="rounded">نقاط ناعمة (Soft Dots)</option>
+              <option value="square">مربعات كلاسيكية (Classic Square)</option>
+            </select>
+          </div>
+
+          <div class="pt-2 flex flex-wrap gap-3">
+            <button onclick="updateDemoQR()" class="btn-primary text-sm flex-1">
+              <i class="fa-solid fa-arrows-rotate ml-1"></i> تحديث الكود
+            </button>
+            <button onclick="downloadDemoQR()" class="btn-secondary text-sm">
+              <i class="fa-solid fa-download ml-1 text-cyan-400"></i> تحميل PNG
+            </button>
+          </div>
+        </div>
+
+        <!-- Preview Column -->
+        <div class="md:col-span-5 flex flex-col items-center justify-center p-6 bg-slate-900/60 rounded-2xl border border-slate-800">
+          <div id="demo-qr-canvas-container" class="w-56 h-56 bg-white rounded-2xl p-3 flex items-center justify-center shadow-xl"></div>
+          <p class="text-xs text-slate-400 mt-4 text-center">
+            <i class="fa-solid fa-circle-check text-emerald-400 ml-1"></i>
+            جاهز للطباعة بدقة عالية
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+  <!-- ==============================================================================
+       FEATURES SECTION
+       ============================================================================== -->
+  <section id="features" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div class="text-center max-w-3xl mx-auto mb-16">
+      <h2 class="text-3xl font-black text-white">لماذا يختار المحترفون منصة "تقييمك"؟</h2>
+      <p class="text-slate-400 mt-3 text-sm sm:text-base">كل ما تحتاجه لإدارة علامتك التجارية والروابط المطبوعة والرقمية باحترافية مطلقة</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      
+      <!-- Feature 1 -->
+      <div class="glass-card rounded-2xl p-7 relative">
+        <div class="w-12 h-12 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xl mb-5">
+          <i class="fa-solid fa-folder-tree"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-3">أنظمة وملفات غير محدودة (ملفاتك)</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">
+          أنشئ ملفات مستقلة لكل مشروع أو كافيه أو متجر برابط مخصص وخلفية غلاف وصورة بروفايل خاصة به.
+        </p>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="glass-card rounded-2xl p-7 relative">
+        <div class="w-12 h-12 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xl mb-5">
+          <i class="fa-solid fa-bolt"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-3">أكواد QR ديناميكية ذكية</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">
+          اطبع الكود على كروت العمل أو الطاولات؛ يمكنك تغيير الرابط المستهدف في أي وقت دون إعادة طباعة الكود!
+        </p>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="glass-card rounded-2xl p-7 relative">
+        <div class="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl mb-5">
+          <i class="fa-solid fa-chart-simple"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-3">إحصائيات تفصيلية وتحليلات</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">
+          تتبع عدد الزيارات، النقرات على كل رابط، وعدد مرات مسح أكواد QR ومعدلات التفاعل CTR بدقة.
+        </p>
+      </div>
+
+    </div>
+
+    
+
+  </section>
+
+  
+
+  <!-- ==============================================================================
+       FAQ SECTION
+       ============================================================================== -->
+  <section id="faq" class="py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto overflow-x-hidden">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-black text-white">الأسئلة الشائعة</h2>
+      <p class="text-slate-400 mt-2 text-sm">إجابات على أهم الاستفسارات حول منصة تقييمك</p>
+    </div>
+
+    <div class="space-y-4">
+      <div class="glass-card rounded-2xl p-5 cursor-pointer overflow-hidden" onclick="toggleFaq(this)">
+        <div class="flex items-center justify-between gap-2">
+          <h4 class="font-bold text-sm sm:text-base text-white">ما هي ميزة "ملفاتك" (Unlimited Systems)؟</h4>
+          <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform"></i>
+        </div>
+        <p class="text-slate-300 text-xs sm:text-sm mt-3 hidden leading-relaxed">
+          تتيح لك إنشاء أنظمة متعددة بروابط مخصصة (مثل صفحة لكافيه، وصفحة لمتجرك، وصفحة لملفك الشخصي) وإدارتها جميعاً من نفس الحساب والتبديل بينها بضغطة زر واحدة!
+        </p>
+      </div>
+
+      <div class="glass-card rounded-2xl p-5 cursor-pointer overflow-hidden" onclick="toggleFaq(this)">
+        <div class="flex items-center justify-between gap-2">
+          <h4 class="font-bold text-sm sm:text-base text-white">ما هو الفرق بين كود QR الديناميكي والكود الثابت؟</h4>
+          <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform"></i>
+        </div>
+        <p class="text-slate-300 text-xs sm:text-sm mt-3 hidden leading-relaxed">
+          الكود الثابت يحتوي على الرابط محفوراً بداخله ولا يمكن تغييره بعد الطباعة. أما الكود الديناميكي فإنه يربط الرابط بسيرفر تقييمك، مما يسمح لك بتغيير الرابط المستهدف في أي وقت ومن أي مكان دون الحاجة لإعادة طباعة الكود!
+        </p>
+      </div>
+
+      
+
+  <!-- ==============================================================================
+       FOOTER
+       ============================================================================== -->
+  <footer class="border-t border-slate-800/80 bg-slate-950/60 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden">
+      
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-400 flex items-center justify-center text-white">
+          <i class="fa-solid fa-qrcode text-sm"></i>
+        </div>
+        <span class="text-lg font-bold text-white">تقييمك | Taqeemk</span>
+      </div>
+
+      <p class="text-xs text-slate-400 text-center">
+        جميع الحقوق محفوظة &copy; 2026 منصة تقييمك. تم التصميم والتطوير بأعلى معايير الأمان والتوافقية.
+      </p>
+
+      <!-- Social Media Icons -->
+      <div class="flex items-center gap-3">
+        <!-- Instagram -->
+        <a href="#" target="_blank" rel="noopener noreferrer"
+           title="Instagram"
+           class="w-8 h-8 rounded-xl flex items-center justify-center transition-transform hover:scale-110"
+           style="background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);">
+          <i class="fa-brands fa-instagram text-white text-sm"></i>
+        </a>
+        <!-- Facebook -->
+        <a href="#" target="_blank" rel="noopener noreferrer"
+           title="Facebook"
+           class="w-8 h-8 rounded-xl flex items-center justify-center transition-transform hover:scale-110"
+           style="background: #1877f2;">
+          <i class="fa-brands fa-facebook-f text-white text-sm"></i>
+        </a>
+        <!-- TikTok -->
+        <a href="#" target="_blank" rel="noopener noreferrer"
+           title="TikTok"
+           class="w-8 h-8 rounded-xl flex items-center justify-center transition-transform hover:scale-110"
+           style="background: #010101;">
+          <i class="fa-brands fa-tiktok text-white text-sm"></i>
+        </a>
+        <!-- WhatsApp -->
+        <a href="https://wa.me/201503773224" target="_blank" rel="noopener noreferrer"
+           title="WhatsApp"
+           class="w-8 h-8 rounded-xl flex items-center justify-center transition-transform hover:scale-110"
+           style="background: #25d366;">
+          <i class="fa-brands fa-whatsapp text-white text-sm"></i>
+        </a>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- ==============================================================================
+       AUTH MODAL (LOGIN)
+       ============================================================================== -->
+  <div id="auth-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-panel w-full max-w-md rounded-3xl p-6 sm:p-8 relative border border-slate-700/80 shadow-2xl max-h-[90vh] overflow-y-auto">
+      
+      <button onclick="closeAuthModal()" class="absolute top-5 left-5 text-slate-400 hover:text-white transition-colors text-lg" title="إغلاق">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="text-center mb-6">
+        <div class="w-12 h-12 rounded-2xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center mx-auto mb-3 text-xl border border-indigo-500/30">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i>
+        </div>
+        <h3 class="text-xl font-black text-white">تسجيل الدخول</h3>
+        <p class="text-xs text-slate-400 mt-1">أهلاً بك مجدداً في منصة تقييمك</p>
+      </div>
+
+      <!-- Auth Form -->
+      <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+        
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1.5">البريد الإلكتروني:</label>
+          <input type="email" id="auth-email" required placeholder="name@example.com" dir="ltr" class="w-full glass-input rounded-xl px-4 py-2.5 text-sm">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1.5">كلمة المرور:</label>
+          <div class="relative">
+            <input type="password" id="auth-password" required placeholder="••••••••" dir="ltr" class="w-full glass-input rounded-xl px-4 py-2.5 text-sm pl-10">
+            <button type="button" onclick="togglePasswordVisibility()" class="absolute left-3 top-3 text-slate-400 hover:text-white text-xs" title="إظهار/إخفاء كلمة المرور">
+              <i id="pwd-icon" class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" id="auth-submit-btn" class="btn-primary w-full py-3 text-sm mt-2">
+          تسجيل الدخول
+        </button>
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Supabase JS v2 & App Configuration & Logic Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+
+  <script>
+    
+    let demoQrCodeInstance = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const session = await Taqeemk.API.getSession();
+        if (session && session.user) {
+          const profile = await Taqeemk.API.getCurrentProfile();
+          const isAdmin = Boolean(profile?.is_admin === true);
+          const navActions = document.getElementById('nav-actions');
+          if (navActions) {
+            navActions.innerHTML = `
+              <a href="dashboard.html" class="btn-primary text-xs sm:text-sm px-3 sm:px-5 py-1.5 sm:py-2 whitespace-nowrap">
+                <i class="fa-solid fa-gauge-high text-xs ml-1"></i> لوحة التحكم
+              </a>
+              ${isAdmin ? `
+                <a href="admin.html" class="btn-secondary text-xs sm:text-sm px-2.5 sm:px-4 py-1.5 sm:py-2 text-cyan-300 border-cyan-500/30 whitespace-nowrap">
+                  <i class="fa-solid fa-shield-halved text-xs ml-1"></i> الإدارة
+                </a>
+              ` : ''}
+            `;
+          }
+        }
+      } catch (e) {
+        console.warn('Session check error:', e);
+      }
+
+      const targetWallet = window.TAQEEMK_CONFIG?.TARGET_WALLET_NUMBER || '01503773224';
+      const heroWalletEl = document.getElementById('hero-wallet-number');
+      if (heroWalletEl) heroWalletEl.textContent = targetWallet;
+      const pricingWalletEl = document.getElementById('pricing-wallet-number');
+      if (pricingWalletEl) pricingWalletEl.textContent = targetWallet;
+
+      updateDemoQR();
+
+
+    });
+
+
+
+    function updateDemoQR() {
+      const input = document.getElementById('demo-qr-input').value || 'https://taqeemk.com';
+      const fg = document.getElementById('demo-qr-fg').value || '#6366f1';
+      const bg = document.getElementById('demo-qr-bg').value || '#ffffff';
+      const style = document.getElementById('demo-qr-style').value || 'extra-rounded';
+
+      document.getElementById('demo-fg-hex').textContent = fg;
+      document.getElementById('demo-bg-hex').textContent = bg;
+
+      demoQrCodeInstance = Taqeemk.QREngine.render('demo-qr-canvas-container', input, {
+        fg_color: fg,
+        bg_color: bg,
+        corner_style: style,
+        size: 190
+      });
+    }
+
+    document.getElementById('demo-qr-fg').addEventListener('input', updateDemoQR);
+    document.getElementById('demo-qr-bg').addEventListener('input', updateDemoQR);
+    document.getElementById('demo-qr-style').addEventListener('change', updateDemoQR);
+
+    function downloadDemoQR() {
+      Taqeemk.QREngine.download('demo-qr-canvas-container', 'taqeemk-demo-qr.png');
+    }
+
+    function openAuthModal() {
+      document.getElementById('auth-modal').classList.remove('hidden');
+    }
+
+    function closeAuthModal() {
+      document.getElementById('auth-modal').classList.add('hidden');
+    }
+
+    function togglePasswordVisibility() {
+      const pwdInput = document.getElementById('auth-password');
+      const icon = document.getElementById('pwd-icon');
+      if (pwdInput.type === 'password') {
+        pwdInput.type = 'text';
+        icon.className = 'fa-regular fa-eye-slash';
+      } else {
+        pwdInput.type = 'password';
+        icon.className = 'fa-regular fa-eye';
+      }
+    }
+
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('auth-email').value;
+      const password = document.getElementById('auth-password').value;
+      const submitBtn = document.getElementById('auth-submit-btn');
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin ml-2"></i> جاري التحقق...';
+
+      try {
+        const user = await Taqeemk.API.signIn(email, password);
+        Taqeemk.UI.showToast('تم تسجيل الدخول بنجاح!');
+        setTimeout(() => {
+          const isAdmin = Boolean(user?.profile?.is_admin === true);
+          if (isAdmin) {
+            window.location.href = 'admin.html';
+          } else {
+            window.location.href = 'dashboard.html';
+          }
+        }, 700);
+      } catch (err) {
+        Swal.fire({
+          icon: 'error',
+          title: 'خطأ',
+          text: err.message || 'فشل تسجيل الدخول، يرجى التأكد من صحة البريد وكلمة المرور.',
+          background: '#1e293b',
+          color: '#f8fafc',
+          confirmButtonColor: '#6366f1'
+        });
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'تسجيل الدخول';
+      }
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        Taqeemk.UI.showToast('تم نسخ الرقم: ' + text);
+      });
+    }
+
+    function toggleFaq(el) {
+      const p = el.querySelector('p');
+      const icon = el.querySelector('i');
+      if (p.classList.contains('hidden')) {
+        p.classList.remove('hidden');
+        icon.style.transform = 'rotate(180deg)';
+      } else {
+        p.classList.add('hidden');
+        icon.style.transform = 'rotate(0deg)';
+      }
+    }
+  </script>
+
+</body>
+</html>
